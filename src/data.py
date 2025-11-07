@@ -14,6 +14,6 @@ def get_data_reg(DEVICE):
     return X_train.to(DEVICE), y_train.to(DEVICE)
 
 def get_data_cls(DEVICE):
-    X_train, y_train = make_moons(n_samples=200, noise=0.2, random_state=42)
+    X_train, y_train = make_moons(n_samples=200, noise=0.1, random_state=42)
     
     return torch.tensor(X_train, dtype=torch.float32).to(DEVICE), torch.tensor(y_train, dtype=torch.float32).reshape(-1, 1).to(DEVICE)

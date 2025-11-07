@@ -29,10 +29,10 @@ def train_cls(model, optimizer, X_train, y_train, epochs=1000, num_samples=5):
         
         for _ in range(num_samples):
             y_pred = model(X_train, sample=True)
-            BCE_loss += F.binary_cross_entropy(y_pred, y_train)
+            BCE_loss += F.binary_cross_entropy(y_pred, y_train, reduction="sum")
             kl += model.kl_loss()
         
-        loss = (kl / (len(X_train))) + (BCE_loss / num_samples)
+        loss = ((kl / (len(X_train))) + BCE_loss) / num_samples
         loss.backward()
         optimizer.step()
         
