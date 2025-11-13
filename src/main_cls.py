@@ -5,7 +5,7 @@ import torch.optim as optim
 import matplotlib.pyplot as plt
 import numpy as np
 
-from model import BayesianLinear, BayesianNN_reg, BayesianNN_cls
+from BayesianNN_cls import BayesianNN_cls
 from train import train_cls
 from data import get_data_reg, get_data_cls
 from helper import visualize_prediction_cls, visualize_uncertainty
