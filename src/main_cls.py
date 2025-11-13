@@ -1,14 +1,10 @@
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
-import matplotlib.pyplot as plt
-import numpy as np
 
 from BayesianNN_cls import BayesianNN_cls
 from train import train_cls
 from data import get_data_cls
-from helper import visualize_prediction_cls, visualize_uncertainty
+from visualize import visualize_prediction_cls, visualize_uncertainty_cls
 
 # DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 DEVICE = torch.device("cpu")
@@ -20,3 +16,4 @@ optimizer = optim.Adam(model_cls.parameters(), lr=1e-3)
 train_cls(model_cls, optimizer, X_train=X_train, y_train=y_train, epochs=10000)
 
 visualize_prediction_cls(model_cls, X_train=X_train, y_train=y_train)
+visualize_uncertainty_cls(model_cls, X_train=X_train, y_train=y_train)

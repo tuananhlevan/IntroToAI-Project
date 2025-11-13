@@ -1,6 +1,10 @@
 import torch
-import matplotlib.pyplot as plt
 import numpy as np
+from scipy.ndimage import zoom
+
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+import colorsys
 
 def visualize_prediction_reg(model, X_train, y_train):
     model.eval()
@@ -31,6 +35,9 @@ def visualize_prediction_reg(model, X_train, y_train):
     plt.title("Bayesian Neural Network (Variational Inference)")
     plt.show()
     
+def visualize_uncertainty_reg(model, X_train, y_train):
+    pass
+    
 def visualize_prediction_cls(model, X_train, y_train):
     model.eval()
     predictions = []
@@ -59,7 +66,6 @@ def visualize_prediction_cls(model, X_train, y_train):
     fig.suptitle("Model Classification vs. True Labels", fontsize=20, y=1.03)
     plt.tight_layout()
     plt.show()
-    
-    
-def visualize_uncertainty(model, X_test, X_train, y_train):
+        
+def visualize_uncertainty_cls(model, X_train, y_train):
     pass
