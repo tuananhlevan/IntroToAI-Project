@@ -7,7 +7,7 @@ import numpy as np
 
 from BayesianNN_cls import BayesianNN_cls
 from train import train_cls
-from data import get_data_reg, get_data_cls
+from data import get_data_cls
 from helper import visualize_prediction_cls, visualize_uncertainty
 
 # DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
