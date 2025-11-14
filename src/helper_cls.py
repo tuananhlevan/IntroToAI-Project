@@ -12,9 +12,12 @@ def cls_alea(model, x, num_sample=100):
         total_entropy += cls_entropy(model, x=x)
     return total_entropy / num_sample
 
-def cls_total(model, x):
+def cls_total(model, x, num_samples=100):
     model.eval()
-    prob_out = model(x, sample=False)
+    prob = 0
+    for _ in range(num_samples):
+        prob += model(x, sample=True)
+    prob_out = prob / num_samples
     return - prob_out * torch.log(prob_out + 1e-10) - (1 - prob_out) * torch.log(1 - prob_out + 1e-10)
 
 def cls_epi(model, x, num_sample=100):
