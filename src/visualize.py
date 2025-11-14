@@ -1,24 +1,12 @@
 import torch
 import numpy as np
-from scipy.ndimage import zoom
 
 import matplotlib.pyplot as plt
-import matplotlib as mpl
-import colorsys
+from csaps import csaps
 
-def visualize_prediction_reg(model, X_train, y_train):
-    model.eval()
-    predictions = []
-    
-    for _ in range(100):
-        with torch.no_grad():
-            y_pred = model(X_train, sample=True)
-            predictions.append(y_pred.cpu().numpy())
-    
-    predictions = np.stack(predictions, axis=0)
-    mean_pred = predictions.mean(0)
-    std_pred = predictions.std(0)
-    
+from helper_cls import cls_alea, cls_total
+
+def visualize_prediction_reg(model, X_train, y_train, mean_pred, std_pred):
     plt.figure(figsize=(8, 5))
     plt.scatter(X_train.cpu(), y_train.cpu(), s=15, color='k', label='Data')
     plt.plot(X_train.cpu(), torch.sin(X_train.cpu()) + 0.3 * X_train.cpu(), 'g--', label='True Function')
@@ -39,33 +27,61 @@ def visualize_uncertainty_reg(model, X_train, y_train):
     pass
     
 def visualize_prediction_cls(model, X_train, y_train):
-    model.eval()
-    predictions = []
+    plt.figure(figsize=(8, 6))
+    plt.grid(True, linestyle='--', alpha=0.7)
     
-    for _ in range(100):
-        with torch.no_grad():
-            y_pred = model(X_train, sample=True)
-            predictions.append(y_pred.cpu().numpy())
+    plt.scatter(X_train[:, 0], y_train, color='blue', label='True value')
+    x_loc = torch.linspace(-25, 25, 100).unsqueeze(1)
+    plt.plot(x_loc.cpu().ravel(), model(x_loc).detach().numpy(), color='red', linewidth=2, label="Predicted value")
     
-    predictions = np.stack(predictions, axis=0)
-    mean_pred = predictions.mean(0)
-    MLE_pred = torch.tensor(mean_pred > 0.5, dtype=torch.float32)
-    
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6), sharex=True, sharey=True)
-    ax1.scatter(X_train[:, 0], X_train[:, 1], c=y_train, cmap='viridis', s=50, edgecolors='k', alpha=0.8)
-    ax1.set_title("True Labels", fontsize=16)
-    ax1.set_xlabel("Feature 1 (X1)", fontsize=12)
-    ax1.set_ylabel("Feature 2 (X2)", fontsize=12)
-    ax1.set_aspect('equal', adjustable='box')
-    
-    ax2.scatter(X_train[:, 0], X_train[:, 1], c=MLE_pred, cmap='viridis', s=50, edgecolors='k', alpha=0.8)
-    ax2.set_title("Predicted Labels", fontsize=16)
-    ax2.set_xlabel("Feature 1 (X1)", fontsize=12)
-    ax2.set_aspect('equal', adjustable='box')
-    
-    fig.suptitle("Model Classification vs. True Labels", fontsize=20, y=1.03)
+    plt.axhline(y=0.5, color='green', linestyle='--', label='0.5 Probability Threshold')
     plt.tight_layout()
+    plt.legend()
     plt.show()
         
 def visualize_uncertainty_cls(model, X_train, y_train):
-    pass
+    plt.figure(figsize=(8, 6))
+    plt.grid(True, linestyle='--', alpha=0.7)
+    
+    seen_y0 = False
+    seen_y1 = False
+    for (x, y) in zip(X_train, y_train):
+        if -20 < x < -3 or 20 > x > 3:
+            continue
+        
+        if y == 0:
+            line_color = 'cyan'
+            label = 'ICL Data: y=0'
+            
+            # Only add the label to the legend once
+            if not seen_y0:
+                plt.axvline(x=x, color=line_color, linestyle='--', linewidth=2, label=label)
+                seen_y0 = True
+            else:
+                plt.axvline(x=x, color=line_color, linestyle='--', linewidth=2)
+        else:
+            line_color = 'gray'
+            label = 'ICL Data: y=1'
+            
+            # Only add the label to the legend once
+            if not seen_y1:
+                plt.axvline(x=x, color=line_color, linestyle='--', linewidth=2, label=label)
+                seen_y1 = True
+            else:
+                plt.axvline(x=x, color=line_color, linestyle='--', linewidth=2)            
+    
+    x_loc = torch.linspace(-25, 25, 100).unsqueeze(1)
+    alea = cls_alea(model=model, x=x_loc, num_sample=5)
+    total = cls_total(model=model, x=x_loc)
+    plt.scatter(x_loc, alea.detach().numpy(), color="C0", alpha=0.4)
+    plt.scatter(x_loc, total.detach().numpy(), color="C1", alpha=0.4)
+    
+    x_loc_1d = x_loc.squeeze().detach().numpy()
+    alea_line = csaps(x_loc_1d, alea.squeeze().detach().numpy(), smooth=0.35)
+    total_line = csaps(x_loc_1d, total.squeeze().detach().numpy(), smooth=0.35)
+    plt.plot(x_loc, alea_line(x_loc), color='C0', linewidth=3, label='Aleatoric Uncertainty')
+    plt.plot(x_loc, total_line(x_loc), color="C1", linewidth=3, label="Total Uncertainty")
+    
+    plt.tight_layout()
+    plt.legend()
+    plt.show()
