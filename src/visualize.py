@@ -71,7 +71,7 @@ def visualize_uncertainty_cls(model, X_train, y_train):
                 plt.axvline(x=x, color=line_color, linestyle='--', linewidth=2)            
     
     x_loc = torch.linspace(-25, 25, 100).unsqueeze(1)
-    alea = cls_alea(model=model, x=x_loc, num_sample=5)
+    alea = cls_alea(model=model, x=x_loc, num_sample=10)
     total = cls_total(model=model, x=x_loc)
     plt.scatter(x_loc, alea.detach().numpy(), color="C0", alpha=0.4)
     plt.scatter(x_loc, total.detach().numpy(), color="C1", alpha=0.4)

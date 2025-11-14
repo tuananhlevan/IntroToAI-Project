@@ -6,7 +6,7 @@ from BayesianLinear import BayesianLinear
 class BayesianNN_cls(nn.Module):
     def __init__(self):
         super().__init__()
-        self.layer_1 = BayesianLinear(2, 20)
+        self.layer_1 = BayesianLinear(1, 20)
         self.layer_2 = BayesianLinear(20, 20)
         self.layer_3 = BayesianLinear(20, 1)
         

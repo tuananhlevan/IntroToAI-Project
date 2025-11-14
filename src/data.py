@@ -1,8 +1,4 @@
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-from sklearn.datasets import make_moons
 
 torch.manual_seed(42)
 
@@ -14,6 +10,20 @@ def get_data_reg(DEVICE):
     return X_train.to(DEVICE), y_train.to(DEVICE)
 
 def get_data_cls(DEVICE):
-    X_train, y_train = make_moons(n_samples=200, noise=0.1, random_state=42)
+    data = [
+        [-25, 0], [-22, 0], [-20, 0], [-18, 0], [-17, 0],
+        [-16, 0], [-15, 0], [-14, 0], [-13, 0], [-12, 0],
+        [-11, 1], [-10, 0], [-9, 0], [-8, 1], [-7, 0],
+        [-6, 0], [-5, 0], [-4, 1], [-3, 0], [-2, 0],
+        [-1, 1], [-0.5, 0], [-0.2, 1], [0.0, 0], [0.1, 1],
+        [0.3, 0], [0.5, 1], [0.8, 1], [1.2, 0], [1.5, 1],
+        [2.0, 0], [2.4, 1], [2.9, 1], [3.5, 0], [4.0, 1],
+        [5.0, 1], [6.0, 1], [7.0, 1], [8.0, 0], [9.0, 1],
+        [10.0, 1], [11.0, 1], [12.0, 1], [14.0, 1], [16.0, 1],
+        [18.0, 1], [20.0, 1], [22.0, 1], [24.0, 1], [25.0, 1]
+    ]
+
+    X = [[row[0]] for row in data]
+    y = [row[1] for row in data]
     
-    return torch.tensor(X_train, dtype=torch.float32).to(DEVICE), torch.tensor(y_train, dtype=torch.float32).reshape(-1, 1).to(DEVICE)
+    return torch.tensor(X, dtype=torch.float32).to(DEVICE), torch.tensor(y, dtype=torch.float32).reshape(-1, 1).to(DEVICE)

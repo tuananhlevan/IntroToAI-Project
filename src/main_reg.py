@@ -5,6 +5,7 @@ from BayesianNN_reg import BayesianNN_reg
 from train import train_reg
 from data import get_data_reg
 from visualize import visualize_prediction_reg, visualize_uncertainty_reg
+from reg_predict import reg_predict
 
 # DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 DEVICE = torch.device("cpu")
@@ -14,6 +15,7 @@ X_train, y_train = get_data_reg(DEVICE=DEVICE)
 model_reg = BayesianNN_reg().to(DEVICE)
 optimizer = optim.Adam(model_reg.parameters(), lr=1e-3)
 train_reg(model_reg, optimizer, X_train=X_train, y_train=y_train, epochs=5000, num_samples=5)
+mean_pred, std_pred = reg_predict(model=model_reg, X_train=X_train)
 
-visualize_prediction_reg(model_reg, X_train=X_train, y_train=y_train)
+visualize_prediction_reg(model_reg, X_train=X_train, y_train=y_train, mean_pred=mean_pred, std_pred=std_pred)
 visualize_uncertainty_reg(model_reg, X_train=X_train, y_train=y_train)
