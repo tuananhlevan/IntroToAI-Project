@@ -11,8 +11,8 @@ class BayesianNN_cls(nn.Module):
         self.layer_3 = BayesianLinear(20, 1)
         
     def forward(self, x, sample=True):
-        h = F.softplus(self.layer_1(x, sample=sample))
-        h = F.softplus(self.layer_2(h, sample=sample))
+        h = F.relu(self.layer_1(x, sample=sample))
+        h = F.relu(self.layer_2(h, sample=sample))
         out = self.layer_3(h, sample=sample)
         return torch.sigmoid(out)
 
