@@ -17,5 +17,5 @@ val_dataset = ImageFolder(root=data_dir + "val", transform=transform)
 test_dataset = ImageFolder(root=data_dir + "test", transform=transform)
 
 train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
+val_loader = DataLoader(val_dataset, batch_size=32, shuffle=True)
 test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)

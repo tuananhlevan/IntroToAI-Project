@@ -22,24 +22,19 @@ class CancerPredictionNet(nn.Module):
         # Block 3
         self.bconv3 = BayesianConv2d(32, 64, kernel_size=(5, 5), padding=2) # 64x64x64
         self.pool3 = nn.MaxPool2d(kernel_size=(2, 2), stride=2)             # 64x32x32
-        
-        # Block 4
-        self.bconv4 = BayesianConv2d(64, 128, kernel_size=(5, 5), padding=2) # 128x32x32
-        self.pool4 = nn.MaxPool2d(kernel_size=(2, 2), stride=2)              # 128x16x16
 
         # --- This is the new flattened size ---
-        # 128 channels * 16 * 16 features
-        self.flat_size = 128 * 16 * 16 
+        # 64 channels * 32 * 32 features
+        self.flat_size = 64 * 32 * 32
 
-        self.bfc1 = BayesianLinear(self.flat_size, 512)
-        self.bfc2 = BayesianLinear(512, 2)
+        self.bfc1 = BayesianLinear(self.flat_size, 256)
+        self.bfc2 = BayesianLinear(256, 2)
 
     def forward(self, x):
         # We add F.relu after each conv/linear layer
         x = self.pool1(F.relu(self.bconv1(x)))
         x = self.pool2(F.relu(self.bconv2(x)))
         x = self.pool3(F.relu(self.bconv3(x)))
-        x = self.pool4(F.relu(self.bconv4(x)))
         
         x = torch.flatten(x, 1) # Flatten all dimensions except batch
         

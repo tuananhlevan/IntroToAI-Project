@@ -1,6 +1,6 @@
 import torch
 
-from data import train_loader, test_loader, val_loader
+from data import train_loader, val_loader
 
 from tqdm.auto import tqdm
 
@@ -13,7 +13,7 @@ def Bayes_train(model, optimizer, criterion, epochs, device, train_loader=train_
         
         train_loop = tqdm(train_loader, 
                       desc=f"Epoch {epoch + 1}/{epochs} [Training]", 
-                      leave=False) # leave=False removes bar on completion
+                      leave=False)
         
         for i, data in enumerate(train_loop, 0):
             inputs, labels = data
@@ -25,7 +25,9 @@ def Bayes_train(model, optimizer, criterion, epochs, device, train_loader=train_
                 inputs=inputs,
                 labels=labels,
                 criterion=criterion,
-                sample_nbr=3)
+                sample_nbr=3,
+                complexity_cost_weight=1/10000
+                )
             
             loss.backward()
             optimizer.step()
@@ -44,7 +46,7 @@ def Bayes_train(model, optimizer, criterion, epochs, device, train_loader=train_
                         desc=f"Epoch {epoch + 1}/{epochs} [Validation]", 
                         leave=False)
         
-        with torch.no_grad(): # No gradients needed for validation
+        with torch.no_grad():
             for data in val_loop:
                 images, labels = data
                 images, labels = images.to(device), labels.to(device)
@@ -53,7 +55,9 @@ def Bayes_train(model, optimizer, criterion, epochs, device, train_loader=train_
                     inputs=images,
                     labels=labels,
                     criterion=criterion,
-                    sample_nbr=3)
+                    sample_nbr=3,
+                    complexity_cost_weight=1/10000
+                    )
                 
                 val_loss += loss.item()
                 
@@ -61,7 +65,7 @@ def Bayes_train(model, optimizer, criterion, epochs, device, train_loader=train_
                 _, predicted = torch.max(outputs.data, 1)
                 total += labels.size(0)
                 correct += (predicted == labels).sum().item()
-
+                
         print(f"[Epoch {epoch + 1}] Validation loss: {val_loss / len(val_loader):.3f}")
         print(f"[Epoch {epoch + 1}] Validation Accuracy: {100 * correct // total} %")
         print("-" * 30)
