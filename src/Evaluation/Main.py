@@ -28,9 +28,13 @@ CNNCifar100.load_state_dict(torch.load("CNN/model/CIFAR-100-CNN.pth", weights_on
 CNNCifar100.to(DEVICE)
 CNNCifar100.eval()
 
-for _ in range(10):
-    BayesAcc10, BayesEce10 = evaluate_model(BayesCifar10, DEVICE, 10, c10_test_loader, is_bayesian=True, num_samples=100)
-    BayesAcc100, BayesEce100 = evaluate_model(BayesCifar100, DEVICE, 100, c100_test_loader, is_bayesian=True, num_samples=100)
+BayesAcc10, BayesEce10 = evaluate_model(BayesCifar10, DEVICE, 10, c10_test_loader, is_bayesian=True, num_samples=100)
+BayesAcc100, BayesEce100 = evaluate_model(BayesCifar100, DEVICE, 100, c100_test_loader, is_bayesian=True, num_samples=100)
 
-    CNNAcc10, CNNEce10 = evaluate_model(CNNCifar10, DEVICE, 10, c10_test_loader, is_bayesian=False, num_samples=100)
-    CNNAcc100, CNNEce100 = evaluate_model(CNNCifar100, DEVICE, 100, c100_test_loader, is_bayesian=False, num_samples=100)
+CNNAcc10, CNNEce10 = evaluate_model(CNNCifar10, DEVICE, 10, c10_test_loader, is_bayesian=False, num_samples=100)
+CNNAcc100, CNNEce100 = evaluate_model(CNNCifar100, DEVICE, 100, c100_test_loader, is_bayesian=False, num_samples=100)
+
+print("ECE Cifar10: ", BayesEce10, CNNEce10)
+print("Accuracy Cifar10: ", BayesAcc10, CNNAcc10)
+print("ECE Cifar100: ", BayesEce100, CNNEce100)
+print("Accuracy Cifar100: ", BayesAcc100, CNNAcc100)

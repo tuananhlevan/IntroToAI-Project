@@ -6,7 +6,7 @@ from tqdm.auto import tqdm
 def evaluate_model(model, device, num_classes, loader, is_bayesian=True, num_samples=100):
     model.eval()
     
-    ece_metric = MulticlassCalibrationError(num_classes=num_classes, n_bins=15, norm='l1')
+    ece_metric = MulticlassCalibrationError(num_classes=num_classes, n_bins=20, norm='l1')
     ece_metric = ece_metric.to(device)
 
     all_mean_probs = []
