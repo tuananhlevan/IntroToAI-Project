@@ -15,4 +15,3 @@ def train(model, optimizer, X_train, y_train, epochs=1000, num_samples=5):
         
         if (epoch + 1) % 200 == 0:
             print(f"Epoch [{epoch + 1}/{epochs}], Loss = {loss}")
-            

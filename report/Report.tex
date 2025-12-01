@@ -1,0 +1,64 @@
+\documentclass[12pt]{report}  % or use 'article' or 'book'
+
+% ---------- Packages ----------
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath, amssymb}   % Math symbols
+\usepackage{graphicx}           % Images
+\usepackage{hyperref}           % Links
+\usepackage{geometry}           % Page margins
+\geometry{a4paper, margin=1in}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{enumerate, enumitem}
+\usepackage{algpseudocode, algorithm}
+\usepackage{caption}
+\usepackage{changepage}
+\usepackage{float}
+\usepackage{lipsum}
+\usepackage{mdframed}
+
+\lstset{
+	basicstyle=\ttfamily\small,
+	numbers=left,
+	numberstyle=\tiny,
+	stepnumber=1,
+	numbersep=5pt,
+	frame=single,
+	breaklines=true,
+	tabsize=2,
+	captionpos=b,
+	showstringspaces=false,
+	language=Python
+}
+
+\begin{document}
+	% ---------- Title Page ----------
+	\begin{titlepage}
+		\centering
+		{\scshape\LARGE Hanoi University of Science and Technology \par}
+		\vspace{0.5cm}
+		{\scshape\Large School of Information and Communications Technology\par}
+		\vspace{1.5cm}
+		\includegraphics[width=0.2\textwidth]{hust.jpg}\par\vspace{1cm}
+		
+		{\Huge\bfseries Improve Predictive Model Calibration for Safety-Critical Domains \par}
+		\vspace{0.5cm}
+		\vspace{2cm}
+		
+		{\Large
+			\textbf{Author:} Le Van Tuan Anh \par
+			\textbf{Student ID:} 202416657 \par
+			\textbf{Supervisor:} Dam Quang Tuan \par
+		}
+		
+		\vfill
+		{\large \textbf{Date of Submission:} \today \par}
+	\end{titlepage}
+	
+	\begin{abstract}
+		Deep learning is becoming more and more relevant in modern day tasks like regression or classification. But deep neural networks tend to be poorly calibrated, meaning they are either over-confident or under-confident on their predictions despite being trained on a large scale of data. This makes deep learning models not-applicable in domains that require extreme safety like healthcare or medical. In this project of ours, we propose Bayesian Neural Networks, a framework that have shown an outstanding calibration compare to its MLP counterpart while having a comparable accuracy.
+	\end{abstract}
+	
+	
+	
+\end{document}
