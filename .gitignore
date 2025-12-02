@@ -1,3 +1,10 @@
 __pycache__/
 src/Evaluation/data
 .idea
+report/*.sty
+report/*.aux
+report/*.log
+report/*.out
+report/*.gz
+report/*.tex
+report/*.toc

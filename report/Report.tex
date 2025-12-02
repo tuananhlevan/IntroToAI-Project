@@ -1,64 +1,95 @@
-\documentclass[12pt]{report}  % or use 'article' or 'book'
+\documentclass{article}  % or use 'article' or 'book'
+
+\usepackage[final]{neurips_2023}
 
 % ---------- Packages ----------
-\usepackage[utf8]{inputenc}
-\usepackage{amsmath, amssymb}   % Math symbols
-\usepackage{graphicx}           % Images
-\usepackage{hyperref}           % Links
-\usepackage{geometry}           % Page margins
-\geometry{a4paper, margin=1in}
-\usepackage{listings}
-\usepackage{xcolor}
-\usepackage{enumerate, enumitem}
-\usepackage{algpseudocode, algorithm}
-\usepackage{caption}
-\usepackage{changepage}
-\usepackage{float}
-\usepackage{lipsum}
-\usepackage{mdframed}
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{xcolor}         % colors
 
-\lstset{
-	basicstyle=\ttfamily\small,
-	numbers=left,
-	numberstyle=\tiny,
-	stepnumber=1,
-	numbersep=5pt,
-	frame=single,
-	breaklines=true,
-	tabsize=2,
-	captionpos=b,
-	showstringspaces=false,
-	language=Python
+\newcommand*\samethanks[1][\value{footnote}]{\footnotemark[#1]}
+
+\title{Improve Predictive Model Calibration for Safety-Critical Domains}
+
+\author{%
+	Le Van Tuan Anh\thanks{DS-AI 03 K69}\\
+	\texttt{anh.lvt2416657@sis.hust.edu.vn} \\
+	% examples of more authors
+	\And
+	Nguyen Tran Minh Tri\samethanks \\
+	\texttt{tri.ntm2400116@sis.hust.edu.vn} \\
+	\AND
+	Le Xuan Nhat Khoi\samethanks \\
+	\texttt{khoi.lxn2416711@sis.hust.edu.vn} \\
+	\And
+	Nguyen Duy Tung\samethanks \\
+	\texttt{tung.nd2416762@sis.hust.edu.vn} \\
 }
+
 
 \begin{document}
 	% ---------- Title Page ----------
-	\begin{titlepage}
-		\centering
-		{\scshape\LARGE Hanoi University of Science and Technology \par}
-		\vspace{0.5cm}
-		{\scshape\Large School of Information and Communications Technology\par}
-		\vspace{1.5cm}
-		\includegraphics[width=0.2\textwidth]{hust.jpg}\par\vspace{1cm}
-		
-		{\Huge\bfseries Improve Predictive Model Calibration for Safety-Critical Domains \par}
-		\vspace{0.5cm}
-		\vspace{2cm}
-		
-		{\Large
-			\textbf{Author:} Le Van Tuan Anh \par
-			\textbf{Student ID:} 202416657 \par
-			\textbf{Supervisor:} Dam Quang Tuan \par
-		}
-		
-		\vfill
-		{\large \textbf{Date of Submission:} \today \par}
-	\end{titlepage}
+	\maketitle
 	
 	\begin{abstract}
-		Deep learning is becoming more and more relevant in modern day tasks like regression or classification. But deep neural networks tend to be poorly calibrated, meaning they are either over-confident or under-confident on their predictions despite being trained on a large scale of data. This makes deep learning models not-applicable in domains that require extreme safety like healthcare or medical. In this project of ours, we propose Bayesian Neural Networks, a framework that have shown an outstanding calibration compare to its MLP counterpart while having a comparable accuracy.
+		Reliable uncertainty estimation is crucial for deploying modern neural networks in high-stakes scenarios, yet standard deterministic models trained with conventional loss functions often become systematically overconfident in their predictions. In this work, we propose a Bayesian neural network (BNN) framework that improves model calibration by replacing traditional point-estimate training with optimization of the evidence lower bound (ELBO). Our approach learns a distribution over network weights, enabling principled uncertainty quantification and mitigating the overconfidence commonly induced by cross-entropy–based training. Empirical results demonstrate that our BNN formulation yields significantly better calibration, measured via expected calibration error and negative log-likelihood, while maintaining competitive predictive accuracy.
 	\end{abstract}
 	
+	\section{Introduction}
+	Neural networks have achieved remarkable performance across a wide range of predictive tasks, yet their reliability remains a significant challenge in practical deployment. Standard deterministic models trained with conventional loss functions, most notably cross-entropy, tend to produce overly confident predictions, even when faced with ambiguous inputs or samples far outside the training distribution. This systematic overconfidence not only impairs decision-making but also limits the applicability of modern deep learning systems in safety-critical domains such as medical diagnosis, autonomous navigation, and scientific modeling.
+	
+	Bayesian neural networks (BNNs) offer a principled framework for addressing this limitation by replacing point estimates of network weights with full posterior distributions. Instead of committing to a single set of parameters, BNNs represent uncertainty directly through the variability of sampled weight configurations, enabling more calibrated predictive distributions. However, training BNNs remains challenging due to the intractability of the exact posterior, which necessitates efficient and scalable approximations.
+	
+	In this work, we revisit variational Bayesian learning as a practical solution to these challenges. We propose a BNN framework trained via maximization of the evidence lower bound (ELBO), which balances model fit with posterior regularization through a Kullback–Leibler divergence term. Unlike traditional losses that focus solely on maximizing predictive accuracy, the ELBO encourages the model to capture epistemic uncertainty by constraining the posterior to remain close to a meaningful prior. This leads to better uncertainty estimates, improved robustness to distribution shift, and reduced overconfidence in regions where data are sparse or ambiguous.
+	
+	To assess the effectiveness of our approach, we conduct extensive empirical evaluations across classification tasks and calibration benchmarks. Our results show that ELBO-based training consistently improves calibration metrics, including expected calibration error and negative log-likelihood, while maintaining competitive accuracy. These findings highlight the value of Bayesian training objectives in producing trustworthy and informative predictions.
+	
+	\section{Bayesian Inference}
+	Bayesian inference provides a principled mathematical framework for reasoning under uncertainty by treating model parameters as random variables rather than fixed quantities. Given observed data $\mathcal{D} = \{(x_{i}, y_{i})\}_{i = 1}^{N}$ and model parameter $\theta$, Bayes' rule defines the posterior distribution as:
+	$$
+	p(\theta \mid \mathcal{D}) = \frac{p(\theta)p(\mathcal{D} \mid \theta)}{p(\mathcal{D})}
+	$$
+	where $p(\theta)$ is a prior encoding assumptions about the parameters, $p(\mathcal{D} \mid \theta)$ is the likelihood of the data under the model, and $p(\mathcal{D})$ is the marginal likelihood (the evidence). The posterior captures all uncertainty about the parameters after observing data, and predictions are obtained by marginalizing over this uncertainty:
+	$$
+	p(y^{*} \mid x^{*}, \mathcal{D}) = \int p(y^{*} \mid x^{*}, \theta)p(\theta \mid \mathcal{D})d\theta
+	$$
+	
+	\subsection{Bayesian Neural Networks}
+	A Bayesian Neural Network (BNN) applies Bayesian inference to deep learning by placing distributions over the network weights instead of learning deterministic parameters. Let $\theta$ represent all weights and biases of the network. In a BNN, we specify:
+	\begin{itemize}
+		\item A \textbf{prior} $p(\theta)$, typically chosen as a factorized Gaussian with zero mean
+		\item A \textbf{likelihood} $p(\mathcal{D} \mid \theta)$, which depends on the model output (e.g., softmax likelihood for classification)
+	\end{itemize}
+	Because the neural network likelihood is highly nonlinear and the parameter space is high-dimensional, the posterior is \textbf{intractable}, we cannot compute it analytically or normalize it exactly. Likewise, exact predictive inference requires evaluating an integral over all possible weight values, which is computationally prohibitive.
+	
+	\subsection{Probabilistic Inference}
+	To address this intractability, BNNs rely on approximate inference methods. The two primary families are:
+	\begin{itemize}
+		\item \textbf{Markov chain Monte Carlo (MCMC)}: Draws samples from the true posterior using iterative sampling schemes (e.g., Hamiltonian Monte Carlo). While theoretically accurate, MCMC scales poorly with deep architectures and large datasets.
+		\item \textbf{Variational Inference (VI)}: Approximates the posterior by a simpler distribution $q_{\phi}(\theta)$ and selects $q_{\phi}(\theta)$ to minimize the divergence from the true posterior. VI is computationally efficient, scalable to large datasets, and compatible with gradient-based optimization.
+	\end{itemize}
+	Variational inference forms the foundation of most practical BNN implementations, as it enables amortized training through stochastic optimization and mini-batching.
+	
+	\subsection{Predictive Uncertainty}
+	BNNs provide two forms of uncertainty:
+	\begin{itemize}
+		\item \textbf{Epistemic Uncertainty}: Arising from limited data or model ambiguity, captured through variability in $p(\theta \mid \mathcal{D})$
+		\item \textbf{Aleatoric Uncertainty}: Representing inherent noise in the data, captured through the likelihood $p(y \mid x, \theta)$
+	\end{itemize}
+	
+	\section{ELBO Loss as an Objective}
+	
+	\section{Bayesian Linear and Bayesian Convolution}
+	
+	\section{Experiments}
+	
+	\section{Conclusion}
 	
 	
 \end{document}
