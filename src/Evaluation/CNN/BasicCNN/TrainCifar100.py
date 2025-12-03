@@ -1,7 +1,7 @@
 import torch
 from torch import optim, nn
 
-from src.Evaluation.CNN.Model import CNN
+from Model import CNN
 from src.Evaluation.CNN.Train import train
 from src.Evaluation.DownloadData import c100_train_loader, c100_val_loader
 
@@ -13,4 +13,4 @@ optimizer = optim.Adam(model.parameters(), lr=1e-3)
 criterion = nn.CrossEntropyLoss()
 EPOCHS = 50
 
-train(model=model, optimizer=optimizer, criterion=criterion, epochs=EPOCHS, device=DEVICE, train_loader=c100_train_loader, val_loader=c100_val_loader, path_to_model="model/CIFAR-100-CNN.pth")
+train(model=model, optimizer=optimizer, criterion=criterion, epochs=EPOCHS, device=DEVICE, train_loader=c100_train_loader, val_loader=c100_val_loader, path_to_model="../model/CIFAR-100-CNN.pth")

@@ -1,8 +1,7 @@
 import torch
-import matplotlib.pyplot as plt
 
 from src.Evaluation.Bayes.Model import BayesNet
-from src.Evaluation.CNN.Model import CNN
+from src.Evaluation.CNN.BasicCNN.Model import CNN
 from src.Evaluation.EvaluationFunction import evaluate_model
 from src.Evaluation.DownloadData import c10_test_loader, c100_test_loader
 

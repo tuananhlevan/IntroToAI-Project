@@ -1,8 +1,8 @@
 import torch
 from torch import optim, nn
 
-from src.Evaluation.Bayes.Model import BayesNet
-from src.Evaluation.Bayes.Train import train
+from Model import BayesNet
+from Train import train
 from src.Evaluation.DownloadData import c100_train_loader, c100_val_loader
 
 torch.manual_seed(42)
