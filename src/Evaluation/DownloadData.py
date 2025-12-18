@@ -8,11 +8,24 @@ from pathlib import Path
 BASE = Path(__file__).resolve().parent
 DATA_DIR = BASE / "data"
 
-c100_transform = transforms.Compose([
+c100_train_transform = transforms.Compose([
+    transforms.RandomCrop(32, padding=4),
+    transforms.RandomHorizontalFlip(),
     transforms.ToTensor(),
     transforms.Normalize([0.5071, 0.4867, 0.4408], [0.2675, 0.2565, 0.2761])
 ])
-c10_transform = transforms.Compose([
+c100_test_transform = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize([0.5071, 0.4867, 0.4408], [0.2675, 0.2565, 0.2761])
+])
+
+c10_train_transform = transforms.Compose([
+    transforms.RandomCrop(32, padding=4),
+    transforms.RandomHorizontalFlip(),
+    transforms.ToTensor(),
+    transforms.Normalize([0.4914, 0.4822, 0.4465], [0.2023, 0.1994, 0.2010])
+])
+c10_test_transform = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize([0.4914, 0.4822, 0.4465], [0.2023, 0.1994, 0.2010])
 ])
@@ -20,23 +33,23 @@ c10_transform = transforms.Compose([
 c10_full_train_dataset = torchvision.datasets.CIFAR10(root=DATA_DIR / "CIFAR10",
                                                       train=True,
                                                       download=True,
-                                                      transform=c10_transform)
+                                                      transform=c10_train_transform)
 c10_test_dataset = torchvision.datasets.CIFAR10(root=DATA_DIR / "CIFAR10",
                                                 train=False,
                                                 download=True,
-                                                transform=c10_transform)
+                                                transform=c10_test_transform)
 
 c100_full_train_dataset = torchvision.datasets.CIFAR100(root=DATA_DIR / "CIFAR100",
                                                         train=True,
                                                         download=True,
-                                                        transform=c100_transform)
+                                                        transform=c100_train_transform)
 c100_test_dataset = torchvision.datasets.CIFAR100(root=DATA_DIR / "CIFAR100",
                                                   train=False,
                                                   download=True,
-                                                  transform=c100_transform)
+                                                  transform=c100_test_transform)
 
 torch.manual_seed(42)
-BATCH_SIZE = 512
+BATCH_SIZE = 256
 
 # CIFAR-10
 c10_train_size = int(0.8 * len(c10_full_train_dataset))

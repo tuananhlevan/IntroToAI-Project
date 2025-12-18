@@ -1,8 +1,28 @@
 import torch
+from torch import nn, optim
+from torch.optim.lr_scheduler import OneCycleLR
 
-from tqdm.auto import tqdm
+from tqdm import tqdm
 
-def train(model, optimizer, criterion, epochs, device, path_to_model, train_loader, val_loader):
+from src.Logger.Logger import Logger
+
+def train(model, device, path_to_model, log_path, train_loader, val_loader):
+    optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=5e-4, nesterov=True)
+    scheduler = OneCycleLR(
+        optimizer,
+        max_lr=0.1,  # Peak Learning Rate
+        steps_per_epoch=len(train_loader),
+        epochs=100,
+        pct_start=0.3,  # Spend 30% of time raising LR, 70% lowering it
+        anneal_strategy='cos',  # Cosine annealing
+        div_factor=25.0,  # Initial LR = max_lr / 25
+        final_div_factor=10000.0  # Final LR = Initial LR / 10000 (Almost zero)
+    )
+    criterion = nn.CrossEntropyLoss()
+    epochs = 100
+
+    logger = Logger(log_path)
+
     print("Starting Training...")
     for epoch in range(epochs):
         # --- TRAIN ---
@@ -11,7 +31,7 @@ def train(model, optimizer, criterion, epochs, device, path_to_model, train_load
         
         train_loop = tqdm(train_loader, 
                       desc=f"Epoch {epoch + 1}/{epochs} [Training]", 
-                      leave=False)
+                      leave=True)
         
         for i, data in enumerate(train_loop, 0):
             inputs, labels = data
@@ -24,6 +44,7 @@ def train(model, optimizer, criterion, epochs, device, path_to_model, train_load
             
             loss.backward()
             optimizer.step()
+            scheduler.step()
             
             running_loss += loss.item()
         
@@ -31,13 +52,12 @@ def train(model, optimizer, criterion, epochs, device, path_to_model, train_load
         
         # --- VALIDATE ---
         model.eval()
-        val_loss = 0.0
         correct = 0
         total = 0
         
         val_loop = tqdm(val_loader, 
                         desc=f"Epoch {epoch + 1}/{epochs} [Validation]", 
-                        leave=False)
+                        leave=True)
         
         with torch.no_grad():
             for data in val_loop:
@@ -45,20 +65,18 @@ def train(model, optimizer, criterion, epochs, device, path_to_model, train_load
                 images, labels = images.to(device), labels.to(device)
                 
                 outputs = model(images)
-                loss = criterion(outputs, labels)
                 
                 _, predicted = torch.max(outputs.data, 1)
                 total += labels.size(0)
                 correct += (predicted == labels).sum().item()
-                
-                val_loss += loss.item()
 
-        print(f"[Epoch {epoch + 1}] Validation loss: {val_loss / len(val_loader):.3f}")
-        print(f"[Epoch {epoch + 1}] Validation Accuracy: {100 * correct // total} %")
+        logger.log(epoch + 1, running_loss / len(train_loader), 100 * correct / total)
+
+        print(f"[Epoch {epoch + 1}] Validation Accuracy: {100 * correct / total:.3f} %")
         print("-" * 30)
 
     print("Finished Training")
+    logger.close()
     
     torch.save(model.state_dict(), path_to_model)
-    
     print(f"Model saved to path {path_to_model}")

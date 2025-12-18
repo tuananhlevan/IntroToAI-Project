@@ -1,5 +1,6 @@
 __pycache__/
 src/Evaluation/data
+src/Experiment/BrainTumor/*
 .idea
 report/*.sty
 report/*.aux
@@ -7,3 +8,4 @@ report/*.log
 report/*.out
 report/*.gz
 report/*.toc
+kaggleapi.txt
