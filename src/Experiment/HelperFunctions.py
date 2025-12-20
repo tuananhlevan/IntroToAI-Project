@@ -46,27 +46,25 @@ def evaluate_model(model, device, num_classes, loader, is_bayesian=True, num_sam
 
     return metrics.compute()
 
-# def visualize_results(metrics):
-#     # Create subplots: 1 row, N columns
-#     fig, ax = plt.figure(figsize=(15, 5))
-#     colors = ['#3498db', '#e74c3c', '#2ecc71']
-#
-#     ax.grid(True, alpha=0.3, axis="y")
-#     ax.set_axisbelow(True)
-#
-#     # Extract values for this specific metric across all models
-#     values =
-#
-#     # Convert tensors to floats if they are still torch tensors
-#     values = [v.item() if hasattr(v, 'item') else v for v in values]
-#
-#     ax.bar(models, values, color=colors[i % len(colors)])
-#     ax.set_title(f'{metric.upper()}')
-#     ax.set_ylim(0, max(values) * 1.2)  # Add some headspace
-#
-#     # Add value labels on top of bars
-#     for j, v in enumerate(values):
-#         ax.text(j, v + (max(values) * 0.02), f'{v:.3f}', ha='center')
-#
-#     plt.tight_layout()
-#     plt.show()
+def visualize_results(metrics):
+    plt.rcParams['axes.axisbelow'] = True
+    plt.figure(figsize=(8, 5))
+    colors = ['#3498db', '#e74c3c', '#2ecc71']
+
+    plt.grid(True, alpha=0.3, axis="y")
+
+    evaluate_models = list(metrics.keys())
+    evaluate_values = list([value.cpu().numpy() for value in metrics.values()])
+
+    for i in range(len(metrics)):
+        plt.bar(evaluate_models[i], evaluate_values[i], color=colors[i % len(colors)])
+        plt.title(f'{evaluate_models[i].upper()}')
+
+    plt.ylim(0, max(evaluate_values) * 1.2)  # Add some headspace
+
+    # Add value labels on top of bars
+    for j, v in enumerate(evaluate_values):
+        plt.text(j, v + (max(evaluate_values) * 0.02), f'{v:.3f}', ha='center')
+
+    plt.tight_layout()
+    plt.show()

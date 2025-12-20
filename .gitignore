@@ -1,6 +1,6 @@
 __pycache__/
 src/Evaluation/data
-src/Experiment/BrainTumor/*
+src/Experiment/SkinCancer/*
 .idea
 report/*.sty
 report/*.aux
