@@ -7,6 +7,7 @@ from src.Evaluation.EvaluationFunction import evaluate_model, visualize_results
 from src.Evaluation.DownloadData import c10_test_loader, c100_test_loader
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+LOG_PATH = "./log/results.csv"
 
 BayesCifar10 = BayesNet(num_classes=10)
 BayesCifar10.load_state_dict(torch.load("Bayes/model/CIFAR-10-Bayes.pth", weights_only=True))

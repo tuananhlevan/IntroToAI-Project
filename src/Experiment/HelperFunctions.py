@@ -10,8 +10,8 @@ def evaluate_model(model, device, num_classes, loader, is_bayesian=True, num_sam
 
     metrics = MetricCollection({
         "acc": MulticlassAccuracy(num_classes=num_classes),
-        "ece": MulticlassCalibrationError(num_classes=num_classes, n_bins=20, norm='l1'),
-        "mce": MulticlassCalibrationError(num_classes=num_classes, n_bins=20, norm='max'),
+        "ece": MulticlassCalibrationError(num_classes=num_classes, n_bins=15, norm='l1'),
+        "mce": MulticlassCalibrationError(num_classes=num_classes, n_bins=15, norm='max'),
     })
     metrics.to(device)
 
@@ -51,7 +51,7 @@ def visualize_results(metrics):
     plt.figure(figsize=(8, 5))
     colors = ['#3498db', '#e74c3c', '#2ecc71']
 
-    plt.grid(True, alpha=0.3, axis="y")
+    plt.grid(True, alpha=0.3)
 
     evaluate_models = list(metrics.keys())
     evaluate_values = list([value.cpu().numpy() for value in metrics.values()])

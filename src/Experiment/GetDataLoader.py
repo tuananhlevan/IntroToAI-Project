@@ -15,18 +15,19 @@ test_transform = transforms.Compose([
     transforms.ToTensor(),
 ])
 
-dataset = datasets.ImageFolder(root="SkinCancer")
+train_dataset = datasets.ImageFolder(root="BrainTumor/Train")
+test_dataset = datasets.ImageFolder(root="BrainTumor/Test")
 
-total_size = len(dataset)
-train_size = int(0.7 * total_size)
-val_size = int(0.15 * total_size)
-test_size = total_size - train_size - val_size
+total_size = len(train_dataset)
+train_size = int(0.8 * total_size)
+val_size = total_size - train_size
 
-train_subset, val_subset, test_subset = random_split(
-    dataset,
-    [train_size, val_size, test_size],
+train_subset, val_subset = random_split(
+    train_dataset,
+    [train_size, val_size],
     generator=generator
 )
+test_subset = test_dataset
 
 class ApplyTransform(torch.utils.data.Dataset):
     def __init__(self, subset, transform=None):

@@ -10,8 +10,8 @@ def evaluate_model(model, device, num_classes, loader, is_bayesian=True, num_sam
     
     metrics = MetricCollection({
         "acc": MulticlassAccuracy(num_classes=num_classes),
-        "ece": MulticlassCalibrationError(num_classes=num_classes, n_bins=20, norm='l1'),
-        "mce": MulticlassCalibrationError(num_classes=num_classes, n_bins=20, norm='max'),
+        "ece": MulticlassCalibrationError(num_classes=num_classes, n_bins=15, norm='l1'),
+        "mce": MulticlassCalibrationError(num_classes=num_classes, n_bins=15, norm='max'),
     })
     metrics.to(device)
 
@@ -55,7 +55,7 @@ def visualize_results(results_dict):
     colors = ['#3498db', '#e74c3c', '#2ecc71']
 
     for i, metric in enumerate(metrics):
-        axes[i].grid(True, alpha=0.3, axis="y")
+        axes[i].grid(True, alpha=0.3)
         axes[i].set_axisbelow(True)
 
         # Extract values for this specific metric across all models

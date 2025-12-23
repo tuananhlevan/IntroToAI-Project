@@ -5,16 +5,16 @@ from tqdm import tqdm
 from src.Logger.Logger import Logger
 
 def train(model, device, path_to_model, log_path, train_loader, val_loader, sample_times=20):
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
-    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=100)
+    optimizer = optim.Adam(model.parameters(), lr=0.0001)
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=20)
     criterion = nn.CrossEntropyLoss()
-    epochs = 100
+    epochs = 20
+    warmup_epochs = 5
 
     logger = Logger(log_path)
 
     print("Starting Training...")
     for epoch in range(epochs):
-        warmup_epochs = 40
         if epoch < warmup_epochs:
             kl_weight = (epoch / warmup_epochs)
         else:
@@ -22,6 +22,7 @@ def train(model, device, path_to_model, log_path, train_loader, val_loader, samp
 
         # --- TRAIN ---
         model.train()
+        model.features.eval()
         running_loss = 0.
 
         train_loop = tqdm(train_loader,
