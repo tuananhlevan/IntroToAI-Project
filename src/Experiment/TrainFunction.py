@@ -6,9 +6,9 @@ from src.Logger.Logger import Logger
 
 def train(model, device, path_to_model, log_path, train_loader, val_loader, sample_times=20):
     optimizer = optim.Adam(model.parameters(), lr=0.0001)
-    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=20)
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
     criterion = nn.CrossEntropyLoss()
-    epochs = 20
+    epochs = 10
     warmup_epochs = 5
 
     logger = Logger(log_path)

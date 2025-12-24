@@ -48,7 +48,6 @@ c100_test_dataset = torchvision.datasets.CIFAR100(root=DATA_DIR / "CIFAR100",
                                                   download=True,
                                                   transform=c100_test_transform)
 
-torch.manual_seed(42)
 BATCH_SIZE = 256
 
 # CIFAR-10

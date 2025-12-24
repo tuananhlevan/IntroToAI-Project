@@ -15,13 +15,14 @@
 \usepackage{amssymb}
 \usepackage{amsmath}
 \usepackage{mathrsfs}
+\usepackage{graphicx}
 
 \newcommand*\samethanks[1][\value{footnote}]{\footnotemark[#1]}
 
 \title{Improve Predictive Model Calibration for Safety-Critical Domains}
 
 \author{%
-	Le Van Tuan Anh\thanks{DS-AI 03 K69}\\
+	Le Van Tuan Anh\thanks{Equal contribution}\\
 	\texttt{anh.lvt2416657@sis.hust.edu.vn} \\
 	% examples of more authors
 	\And
@@ -51,7 +52,7 @@
 	
 	In this work, we revisit variational Bayesian learning as a practical solution to these challenges. We propose a BNN framework trained via maximization of the evidence lower bound (ELBO), which balances model fit with posterior regularization through a Kullback–Leibler divergence term. Unlike traditional losses that focus solely on maximizing predictive accuracy, the ELBO encourages the model to capture epistemic uncertainty by constraining the posterior to remain close to a meaningful prior. This leads to better uncertainty estimates, improved robustness to distribution shift, and reduced overconfidence in regions where data are sparse or ambiguous.
 	
-	To assess the effectiveness of our approach, we conduct extensive empirical evaluations across classification tasks and calibration benchmarks. Our results show that ELBO-based training consistently improves calibration metrics, including expected calibration error and negative log-likelihood, while maintaining competitive accuracy. These findings highlight the value of Bayesian training objectives in producing trustworthy and informative predictions.
+	To assess the effectiveness of our approach, we conduct extensive empirical evaluations across classification tasks and calibration benchmarks. Our results show that ELBO-based training consistently improves calibration metrics, including expected calibration error and maximum calibration error, while maintaining competitive accuracy. These findings highlight the value of Bayesian training objectives in producing trustworthy and informative predictions.
 	
 	\section{Bayesian Inference}
 	Bayesian inference provides a principled mathematical framework for reasoning under uncertainty by treating model parameters as random variables rather than fixed quantities. Given observed data $\mathcal{D} = \{(x_{i}, y_{i})\}_{i = 1}^{N}$ and model parameter $\theta$, Bayes' rule defines the posterior distribution as:
@@ -194,7 +195,57 @@
 	In practice, using $S = 10$ - $20$ balances predictive stability and runtime.
 	
 	\section{Experiments}
+	\subsection{Experiments Setup}
+	We evaluate BNN Framework on prediction tasks on two famous image dataset, CIFAR-10 and CIFAR-100, with the following experimental set-up:
 	
+	\begin{itemize}
+		\item Networks architecture: We use a basic CNN structure for image classification task, but due to a resource constraint, we will only evaluate a hybrid architecture, which will replace a baseline original classifier head, with a Bayesian Linear layer. This, even though limiting, will still improve calibration drastically.
+		
+		\item Baseline: We compare the propose framework with the same CNN architecture, without the Bayesian classifier, to see the difference one Bayes layer makes in model calibration.
+		
+		\item Evaluations: We consider the three following metrics: Accuracy (ACC), Expected Calibration Error (ECE) and Maximum Calibration Error (MCE). We will also be reporting a reliability diagram, showing where and when the model is miscalibrated.
+	\end{itemize}
+	
+	\subsection{Experimental Results and Analysis}
+	\begin{figure}[htbp]
+		\centering
+		\includegraphics[width=\textwidth]{"images/evaluate_cifar10.png"}
+		\includegraphics[width=\textwidth]{"images/evaluate_cifar100.png"}
+		\caption{Test accuracy \& calibration metrics of CNN or BNN-Hybrid trained on CIFAR-10 (1st row) or CIFAR-100 (2nd row)}
+		\label{fig:Comparison}
+	\end{figure}
+	
+	The results demonstrate that the Bayesian Hybrid model successfully maintains a high level of predictive power while significantly improving the reliability of those predictions.
+	\begin{itemize}
+		\item \textbf{Accuracy (ACC)}: On both datasets, the standard CNN slightly outperforms the hybrid model in raw accuracy (e.g., 0.852 vs. 0.808 on CIFAR-10). This "accuracy tax" is a common phenomenon when introducing Bayesian layers, as the model prioritizes representing uncertainty over fitting a single deterministic point estimate.
+		\item \textbf{Calibration Improvement}: The most striking finding is the drastic reduction in calibration error. On CIFAR-100, the CNN's ECE is 0.459, indicating a massive "confidence-accuracy gap." In contrast, the Bayesian Hybrid reduces this to just 0.017, an almost 95\% reduction.
+	\end{itemize}
+	
+	\begin{figure}[htbp]
+		\centering
+		\includegraphics[width=\textwidth]{"images/calibration_cifar10.png"}
+		\includegraphics[width=\textwidth]{"images/calibration_cifar100.png"}
+		\caption{Reliability diagram of CNN or BNN-Hybrid on CIFAR-10 (1st row) or CIFAR-100 (2nd row)}
+		\label{fig:Reliability Diagram}
+	\end{figure}
+	
+	On the simpler CIFAR-10 task, the CNN is already relatively well-calibrated but exhibits notable overconfidence in the high-confidence regime (0.6 to 1.0). The Bayesian Hybrid successfully "pulls" these predictions toward the identity line, reducing the ECE from 0.041 to 0.013. The resulting bins show a nearly seamless alignment between how sure the model is and how often it is correct.\\
+	
+	The benefits of the hybrid approach are most striking in the high-complexity CIFAR-100 environment:
+	\begin{itemize}
+		\item \textbf{CNN Failure}: The standard CNN displays a severe calibration failure, with large "overconfident" gaps across the entire spectrum. Even when the model reports nearly 100\% confidence, its actual accuracy is approximately 50\%.
+		
+		\item \textbf{Bayesian Robustness}: Despite the lower overall accuracy inherent in the 100-class task, the Bayesian Hybrid remains exceptionally well-calibrated (ECE = 0.017). Even as the classes increase, the model effectively "tames" the overconfidence that typically plagues deep learning models, ensuring that its confidence scores remain a trustworthy proxy for actual performance.
+	\end{itemize}
+	
+	These results confirm that the Hybrid framework, keeping the CNN backbone deterministic and only making the classifier head Bayesian, is a highly effective strategy. It provides the uncertainty quantification benefits of Bayesian Neural Networks while avoiding the massive computational costs of a fully Bayesian architecture, making it viable for training on standard hardware.
+	
+	\section{Bayesian Hybrid Framework for Medical Imaging}
+	The results from the CIFAR-10 and CIFAR-100 experiments validate that the Bayesian Hybrid framework effectively mitigates overconfidence while maintaining competitive accuracy. However, in the context of general image recognition, a miscalibrated prediction (e.g., mistaking a "cat" for a "dog" with 99\% confidence) results in a harmless error.\\
+		
+	In contrast, the stakes are significantly higher in Medical Imaging. A deep learning model used for diagnostics must not only be accurate but also "know when it is uncertain." An overconfident misclassification of a malignant tumor as benign could lead to delayed treatment and adverse patient outcomes. Conversely, a well-calibrated model that expresses low confidence in ambiguous cases can signal a human radiologist to perform a manual review, thereby acting as a reliable safety net.\\
+	
+	In this section, we apply the Bayesian Hybrid framework to a Brain Tumor Classification task. We aim to demonstrate that the calibration benefits observed in the CIFAR benchmarks translate to a real-world clinical setting, providing a more robust and trustworthy tool for medical decision support.
 	
 	\section{Conclusion}
 	
