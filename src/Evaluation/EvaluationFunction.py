@@ -1,5 +1,6 @@
 import torch
 import torch.nn.functional as F
+from sklearn.metrics import roc_auc_score
 from torchmetrics import MetricCollection
 from torchmetrics.classification import MulticlassCalibrationError, MulticlassAccuracy
 from tqdm import tqdm
@@ -8,6 +9,9 @@ import matplotlib.pyplot as plt
 
 def evaluate_model(model, device, num_classes, loader, is_bayesian=True, num_samples=100):
     model.eval()
+    for m in model.modules():
+        if m.__class__.__name__.startswith('Dropout'):
+            m.train()
     
     metrics = MetricCollection({
         "ACC ↑": MulticlassAccuracy(num_classes=num_classes),
@@ -30,7 +34,6 @@ def evaluate_model(model, device, num_classes, loader, is_bayesian=True, num_sam
                     batch_preds_samples.append(outputs)
                 
                 all_probs = F.softmax(torch.stack(batch_preds_samples), dim=2)
-                
                 mean_probs = torch.mean(all_probs, dim=0)
                 
             else:
@@ -54,7 +57,7 @@ def visualize_results(results_dict, path, name):
     # Create subplots: 1 row, N columns
     fig, axes = plt.subplots(1, 3, figsize=(15, 5))
     axes[0].set_ylabel(name)
-    colors = ['#3498db', '#e74c3c']
+    colors = ['#3498db', '#e74c3c', '#50C878']
 
     for i, metric in enumerate(metrics):
         axes[i].grid(True, alpha=0.3)
@@ -80,7 +83,6 @@ def visualize_results(results_dict, path, name):
     plt.savefig(path, bbox_inches='tight', dpi=600)
 
 def reliability_diagram(y_true, y_prob_list, model_names, path, n_bins=15):
-
     assert len(y_prob_list) == len(model_names)
 
     bins = np.linspace(0.0, 1.0, n_bins + 1)

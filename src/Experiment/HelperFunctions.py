@@ -6,16 +6,11 @@ from tqdm import tqdm
 import numpy as np
 import matplotlib.pyplot as plt
 
-def evaluate_model(model, device, num_classes, loader, is_bayesian=True, num_samples=100):
+def evaluate_model(model, device, loader, num_samples=100):
     model.eval()
-
-    metrics = MetricCollection({
-        "ACC ↑": MulticlassAccuracy(num_classes=num_classes),
-        "ECE ↓": MulticlassCalibrationError(num_classes=num_classes, n_bins=15, norm='l1'),
-        "MCE ↓": MulticlassCalibrationError(num_classes=num_classes, n_bins=15, norm='max'),
-    })
-    metrics.to(device)
-
+    for m in model.modules():
+        if m.__class__.__name__.startswith('Dropout'):
+            m.train()
     all_mean_probs = []
     all_labels = []
 
@@ -23,19 +18,13 @@ def evaluate_model(model, device, num_classes, loader, is_bayesian=True, num_sam
         for images, labels in tqdm(loader, desc="Evaluating"):
             images, labels = images.to(device), labels.to(device)
 
-            if is_bayesian:
-                batch_preds_samples = []
-                for _ in range(num_samples):
-                    outputs = model(images)
-                    batch_preds_samples.append(outputs)
-
-                all_probs = F.softmax(torch.stack(batch_preds_samples), dim=2)
-
-                mean_probs = torch.mean(all_probs, dim=0)
-
-            else:
+            batch_preds_samples = []
+            for _ in range(num_samples):
                 outputs = model(images)
-                mean_probs = F.softmax(outputs, dim=1)
+                batch_preds_samples.append(outputs)
+
+            all_probs = F.softmax(torch.stack(batch_preds_samples), dim=2)
+            mean_probs = torch.mean(all_probs, dim=0)
 
             all_mean_probs.append(mean_probs)
             all_labels.append(labels)
@@ -43,9 +32,19 @@ def evaluate_model(model, device, num_classes, loader, is_bayesian=True, num_sam
     all_mean_probs = torch.cat(all_mean_probs, dim=0)
     all_labels = torch.cat(all_labels, dim=0)
 
+    return all_mean_probs, all_labels
+
+def get_metrics(all_mean_probs, all_labels, num_classes, device, n_bins=15):
+    metrics = MetricCollection({
+        "ACC ↑": MulticlassAccuracy(num_classes=num_classes),
+        "ECE ↓": MulticlassCalibrationError(num_classes=num_classes, n_bins=n_bins, norm='l1'),
+        "MCE ↓": MulticlassCalibrationError(num_classes=num_classes, n_bins=n_bins, norm='max'),
+    })
+    metrics.to(device)
+
     metrics.update(preds=all_mean_probs, target=all_labels)
 
-    return {k: v.item() for k, v in metrics.compute().items()}, all_mean_probs.detach().cpu().numpy(), all_labels.detach().cpu().numpy()
+    return {k: v.item() for k, v in metrics.compute().items()}
 
 def visualize_results(metrics, path):
     plt.rcParams['axes.axisbelow'] = True
@@ -69,7 +68,7 @@ def visualize_results(metrics, path):
     # plt.savefig(path, bbox_inches='tight', dpi=600)
     plt.show()
 
-def reliability_diagram(y_true, y_prob, path, n_bins=15):
+def reliability_diagram(y_prob, y_true, path, n_bins=15):
 
     # Top-1 confidence + correctness
     y_pred = np.argmax(y_prob, axis=1)

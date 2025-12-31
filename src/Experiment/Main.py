@@ -1,16 +1,19 @@
 import torch
 
-from src.Experiment.HelperFunctions import evaluate_model, visualize_results, reliability_diagram
-from src.Experiment.Model import BayesMobileNet
+from src.Experiment.HelperFunctions import evaluate_model, visualize_results, reliability_diagram, get_metrics
+from src.Experiment.Bayes.Model import BayesMobileNet
 from src.Experiment.GetDataLoader import test_loader
 
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+N_BINS = 15
+NUM_SAMPLES = 100
 
 model = BayesMobileNet(num_classes=4)
-model.load_state_dict(torch.load('model/model.pth'))
+model.load_state_dict(torch.load('Bayes/model.pth'))
 model.to(DEVICE)
 model.eval()
 
-modelMetrics, probs, labels = evaluate_model(model=model, device=DEVICE, num_classes=4, loader=test_loader, is_bayesian=True, num_samples=20)
+probs, labels = evaluate_model(model=model, device=DEVICE, loader=test_loader, num_samples=NUM_SAMPLES)
+modelMetrics = get_metrics(probs, labels, num_classes=4, device=DEVICE, n_bins=N_BINS)
 visualize_results(modelMetrics, path="metrics_experiment")
-reliability_diagram(labels, probs, path="reliability_experiment")
+reliability_diagram(probs.detach().cpu().numpy(), labels.detach().cpu().numpy(), path="reliability_experiment", n_bins=N_BINS)
