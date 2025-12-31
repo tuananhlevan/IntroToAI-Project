@@ -1,31 +1,38 @@
-from blitz.modules import BayesianLinear
+import torch
+from blitz.modules import BayesianConv2d, BayesianLinear
 from blitz.utils import variational_estimator
 from torch import nn
-from torch.nn import MultiheadAttention
 from torch.nn import functional as F
-from torchvision import models
+from torch.nn.modules import Conv2d, Linear, MaxPool2d
+
 
 @variational_estimator
-class BayesMobileNet(nn.Module):
-    def __init__(self, num_classes=4):
+class BayesNet(nn.Module):
+    def __init__(self, num_classes=10):
         super().__init__()
 
-        base_model = models.mobilenet_v2(weights="DEFAULT")
-        self.features = base_model.features
-        self.features.requires_grad_(False)
+        # Block 1
+        # Input: 3 x 32 x 32
+        self.conv1 = Conv2d(3, 16, kernel_size=(3, 3), padding=1)  # 16x32x32
+        self.pool1 = MaxPool2d(kernel_size=(2, 2), stride=2)  # 16x16x16
 
-        height, width, channels = 7, 7, 1280
+        # Block 2
+        self.conv2 = Conv2d(16, 32, kernel_size=(3, 3), padding=1)  # 32x16x16
+        self.pool2 = MaxPool2d(kernel_size=(2, 2), stride=2)  # 32x8x8
 
-        self.multihead_attn = MultiheadAttention(num_heads=8, embed_dim=channels, batch_first=True)
-        self.dropout = nn.Dropout(0.25)
-        self.pool = nn.AdaptiveAvgPool2d(1)
-        self.fc = nn.Linear(in_features=channels, out_features=512)
-        self.batch_norm = nn.BatchNorm1d(num_features=512)
+        # Block 3
+        self.conv3 = Conv2d(32, 64, kernel_size=(3, 3), padding=1)  # 64x8x8
+        self.pool3 = MaxPool2d(kernel_size=(2, 2), stride=2)  # 64x4x4
 
+        # --- This is the new flattened size ---
+        # 64 channels * 4 * 4 features
+        self.flat_size = 64 * 4 * 4
+
+        self.fc = Linear(self.flat_size, 256)
         self.bfc = BayesianLinear(
-            in_features=512,
+            in_features=256,
             out_features=num_classes,
-            prior_sigma_1=1.,
+            prior_sigma_1=1.0,
             prior_sigma_2=0.002,
             prior_pi=0.5,
             posterior_mu_init=0.0,
@@ -33,19 +40,13 @@ class BayesMobileNet(nn.Module):
         )
 
     def forward(self, x):
-        x = self.features(x)
+        # We add F.relu after each conv/linear layer
+        x = self.pool1(F.relu(self.conv1(x)))
+        x = self.pool2(F.relu(self.conv2(x)))
+        x = self.pool3(F.relu(self.conv3(x)))
 
-        B, C, H, W = x.shape
-        x = x.view(B, C, H * W).permute(0, 2, 1)
+        x = torch.flatten(x, 1)  # Flatten all dimensions except batch
 
-        x, _ = self.multihead_attn(x, x, x)
-        x = x.permute(0, 2, 1).view(B, C, H, W)
-        x = self.dropout(x)
-
-        x = self.pool(x).flatten(1)
         x = F.relu(self.fc(x))
-        x = self.batch_norm(x)
-
         x = self.bfc(x)  # No relu on the final output
-
         return x

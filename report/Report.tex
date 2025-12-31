@@ -42,13 +42,11 @@
 	\maketitle
 	
 	\section{Introduction}
-	Deep neural networks have achieved strong performance on classification tasks. However, their predictive probabilities are often poorly calibrated, meaning the confidence scores do not reliably reflect true correctness likelihood. This limitation is particularly problematic in high-stakes domains, such as medical image analysis, where overconfident but incorrect predictions may lead to severe consequences.
-	
 	Traditional deterministic neural networks typically provide point estimates without meaningful uncertainty information. As a result, they are unable to distinguish between confident and uncertain predictions, especially under data ambiguity, limited training samples, or domain shift. This limitation motivates the use of Bayesian and approximate Bayesian methods to capture predictive uncertainty and improve model reliability.
 	
 	In this project, we focus on uncertainty-aware deep learning methods, specifically Monte Carlo Dropout (MC Dropout) and Bayesian Variational Inference (Bayesian VI), as scalable approximations to Bayesian neural networks. These methods allow uncertainty estimation without substantially changing the underlying model architecture or incurring prohibitive computational cost.
 	
-	The goals of this project are threefold:
+	The goals of this project are:
 	\begin{itemize}
 		\item Evaluate the ability of MC Dropout and Bayesian Variational Inference to capture predictive uncertainty and improve model calibration on standard image classification benchmarks, namely CIFAR-10 and CIFAR-100.
 		
@@ -57,6 +55,144 @@
 		\item Apply the studied uncertainty estimation methods to the task of brain tumor classification from medical images, assessing whether improved calibration and uncertainty awareness translate to more reliable predictions in a safety-critical setting.
 	\end{itemize}
 	Overall, this project aims to demonstrate that incorporating uncertainty estimation into deep learning models can enhance not only predictive reliability but also practical applicability, particularly in domains where decision confidence is as important as raw accuracy.
+	
+	\section{Dataset and Data Source}
+	\subsection{CIFAR-10 and CIFAR-100}
+	The CIFAR-10 and CIFAR-100 datasets are widely used benchmarks for image classification and model calibration analysis.
+	
+	\begin{itemize}
+		\item CIFAR-10 consists of 60,000 color images of size $32 \times 32$, evenly distributed across 10 classes, with 50,000 training images and 10,000 test images.
+		
+		\item CIFAR-100 has the same image resolution and total number of samples but is divided into 100 fine-grained classes, making it a more challenging classification task with increased class ambiguity.
+	\end{itemize}
+	For both datasets, standard train-test splits provided by the dataset are used.
+	
+	\subsection{Brain Tumor Image Classification Dataset}
+	To evaluate uncertainty estimation in a real-world, safety-critical setting, our project uses the Brain Tumor Classification dataset obtained from \href{https://www.kaggle.com/datasets/rishiksaisanthosh/brain-tumour-classification/data}{Kaggle}.
+	
+	The dataset consists of MRI brain images categorized into multiple tumor-related classes (glioma, meningioma, pituitary tumor, and no tumor). Compared to CIFAR datasets, these images exhibit:
+	
+	\begin{itemize}
+		\item Higher semantic complexity
+		\item Greater intra-class variability
+		\item Increased consequences of misclassification
+	\end{itemize}
+	
+	This dataset is particularly suitable for uncertainty-aware modeling, as medical imaging tasks require not only accurate predictions but also reliable confidence estimates to support clinical decision-making.
+	
+	\subsection{Preprocessing and Data Handling}
+	
+	Across all datasets, the following preprocessing steps are applied:
+	\begin{itemize}
+		\item Resizing and Normalization
+		\item Label encoding
+		\item Image augmentation (e.g., Random flips, Rotation, Random Crops)
+	\end{itemize}
+	
+	\section{Approach}
+	Our project investigates uncertainty-aware deep learning methods for image classification by comparing deterministic neural networks with two approximate Bayesian approaches: Monte Carlo Dropout (MC Dropout) and Bayesian Variational Inference (Bayesian VI). All methods are evaluated under a consistent experimental setup to ensure fair comparison.
+	
+	\subsection{Baseline Deterministic Model}
+	As a reference point, a standard deterministic convolutional neural network (CNN) is used as the baseline model. The network is trained using maximum likelihood estimation with a cross-entropy loss function and produces point estimates for class probabilities via the softmax output.
+	
+	While this model can achieve high classification accuracy, its predicted confidence scores are often poorly calibrated, motivating the need for uncertainty-aware alternatives.
+	
+	\subsection{Monte Carlo Dropout}
+	Monte Carlo Dropout is an efficient approximation to Bayesian inference that interprets dropout as a form of variational inference. Unlike standard dropout, which is disabled during inference, MC Dropout keeps dropout active at test time, enabling stochastic forward passes through the network.
+	
+	Given an input image $x$, multiple forward passes are performed:
+	\[
+	\{\hat{y}_{1}, \hat{y}_{2}, \dots, \hat{y}_{T}\}
+	\]
+	where each prediction results from a different dropout mask. The final predictive distribution is obtained by averaging these stochastic predictions:
+	\[
+	p(y \mid x) \approx \frac{1}{T}\sum_{t = 1}^{T}p(y \mid x, \theta_{t})
+	\]
+	
+	\subsection{Bayesian Variational Inference}
+	Bayesian Variational Inference explicitly models uncertainty in network parameters by learning a probabilistic distribution over weights, rather than fixed values. In this framework, the posterior is approximated by a variational distribution $q(\theta)$, typically chosen to be a tractable family such as a Gaussian
+	
+	Training is performed by minimizing the variational objective, known as the Evidence Lower Bound (ELBO):
+	\[
+	\mathcal{L}_{ELBO} = \mathbb{E}[\log p(y \mid x, \theta)] - \mathbb{KL}[q(\theta) \parallel p(\theta)]
+	\]
+	
+	The first term encourages accurate predictions, while the KL divergence term regularizes the model by keeping the learned posterior close to the prior distribution. At inference time, multiple samples from the learned weight distribution are used to generate predictive distributions.
+	
+	Compared to MC Dropout, Bayesian VI provides a more principled Bayesian formulation but typically incurs higher computational cost.
+	
+	\subsection{Key Design Choice}
+	To ensure fair and meaningful comparison:
+	\begin{itemize}
+		\item The same base CNN architecture is used across all methods
+		\item Identical training data splits and preprocessing steps are applied
+		\item The number of stochastic forward passes is fixed across uncertainty-aware methods
+		\item Deterministic and Bayesian models are evaluated using the same metrics
+	\end{itemize}
+	
+	\section{Experiments and Evaluation}
+	\subsection{Training, Validation and Test Splits}
+	For CIFAR-10 and CIFAR-100, the standard dataset splits provided by the dataset are used, consisting of predefined training and test sets. A portion (20\%) of the training data is further held out as a validation set for hyperparameter tuning and early stopping.
+	
+	Given that the Brain Tumor Dataset is pre-partitioned into train and test sets, we will derive a validation set from the training data, similar to the methodology used for the CIFAR datasets.
+	
+	All models are trained using the same data splits to ensure comparability.
+	
+	\subsection{Training Procedure}
+	All models are trained using mini-batch stochastic gradient descent with identical optimization settings across methods. Deterministic and Bayesian models share the same base architecture and training pipeline, differing only in how uncertainty is modeled.
+	
+	For uncertainty-aware models:
+	\begin{itemize}
+		\item MC Dropout uses dropout during both training and inference
+		\item Bayesian VI models are trained by optimizing the ELBO objective
+	\end{itemize}
+	
+	\subsection{Evaluation Metrics}
+	Model performance is evaluated using both accuracy-based metrics and calibration-focused metrics, reflecting the dual goal of predictive correctness and reliability.
+	
+	Classification Performance:
+	\begin{itemize}
+		\item Accuracy (ACC)
+	\end{itemize}
+	
+	Calibration Metrics:
+	\begin{itemize}
+		\item Expected Calibration Error (ECE)
+		\item Maximum Calibration Error (MCE)
+	\end{itemize}
+	These metrics quantify how well predicted probabilities align with empirical correctness.
+	
+	\subsection{Calibration Visualization}
+	To complement numerical metrics, reliability diagrams are used to visualize model calibration. These plots compare predicted confidence against observed accuracy across probability bins, enabling intuitive interpretation of overconfidence and underconfidence.
+	
+	\subsection{Baselines and Comparisons}
+	The deterministic CNN serves as the primary baseline for evaluating the effectiveness of uncertainty-aware methods.
+	
+	Comparative analysis focuses on:
+	\begin{itemize}
+		\item Differences in calibration quality
+		\item Trade-offs between accuracy and uncertainty estimation
+		\item Behavior under increased task difficulty (CIFAR-10 vs CIFAR-100)
+		\item Robustness in a real-world medical classification scenario
+	\end{itemize}
+	
+	\section{Results}
+	\subsection{Results on the CIFAR Datasets}
+	\includegraphics[width=\textwidth]{images/evaluate_cifar10.png}
+	\includegraphics[width=\textwidth]{images/evaluate_cifar100.png}
+	
+	In terms of raw accuracy, the models performed differently depending on the dataset's complexity. On the simpler CIFAR-10 dataset, the baseline CNN achieved the highest accuracy (0.852), marginally outperforming MC Dropout (0.837) and the Bayesian Hybrid (0.809). However, on the more complex CIFAR-100 task, MC Dropout surpassed the baseline, achieving the highest accuracy of 0.358 compared to the CNN's 0.304. This suggests that while probabilistic layers may introduce a slight regularization penalty on simple tasks, techniques like MC Dropout effectively prevent overfitting on harder problems.
+	
+	Despite the competitive accuracy of the baseline CNN, the calibration metrics reveal a critical flaw: significant overconfidence.
+	
+	\includegraphics[width=\textwidth]{images/calibration_cifar10.png}
+	\includegraphics[width=\textwidth]{images/calibration_cifar100.png}
+	
+	The deterministic CNN consistently produced the highest calibration errors. On CIFAR-100, it exhibited a massive ECE of 0.459 and an MCE of 0.643, indicating extreme misalignment between confidence and correctness. In strong contrast, both probabilistic methods drastically improved reliability. The Bayesian Hybrid proved the most robust, achieving the lowest ECE on CIFAR-100 (0.017) and a low MCE on CIFAR-10 (0.073), effectively reducing the expected error by over 90\% compared to the baseline.
+	
+	This disparity is visually evident in the reliability diagrams. The CNN’s confidence bars consistently below the diagonal "Perfect Calibration" line, confirming that the model is often "overconfident". Conversely, both the Bayesian Hybrid and MC Dropout models produce bars that closely adhere to the diagonal.
+	
+	These results highlight a clear distinction in model behavior: while the deterministic CNN maximizes accuracy on simple data, it fails to capture its own ignorance. The Bayesian Hybrid and MC Dropout methods successfully mitigate this overconfidence, providing accurate uncertainty estimates with only minor (or no) trade-offs in classification accuracy.
 	
 	\section{Conclusion}
 	

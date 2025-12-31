@@ -8,7 +8,7 @@ BASE = Path(__file__).resolve().parent
 DATA_DIR = BASE / "BrainTumor"
 
 transform = transforms.Compose([
-    transforms.Resize((224, 224)),
+    transforms.Resize((32, 32)),
     transforms.ToTensor(),
 ])
 
@@ -16,12 +16,13 @@ train_dataset = datasets.ImageFolder(root=DATA_DIR / "Train")
 test_dataset = datasets.ImageFolder(root=DATA_DIR / "Test")
 
 total_size = len(train_dataset)
-train_size = int(0.8 * total_size)
-val_size = total_size - train_size
+train_size = int(0.25 * total_size)
+val_size = int(0.05 * total_size)
+left = total_size - train_size - val_size
 
-train_subset, val_subset = random_split(
+train_subset, val_subset, _ = random_split(
     train_dataset,
-    [train_size, val_size],
+    [train_size, val_size, left],
     generator=generator
 )
 test_subset = test_dataset

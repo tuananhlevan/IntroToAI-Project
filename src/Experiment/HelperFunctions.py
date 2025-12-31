@@ -46,107 +46,126 @@ def get_metrics(all_mean_probs, all_labels, num_classes, device, n_bins=15):
 
     return {k: v.item() for k, v in metrics.compute().items()}
 
-def visualize_results(metrics, path):
-    plt.rcParams['axes.axisbelow'] = True
-    plt.figure(figsize=(8, 5))
-    colors = ['#3498db', '#e74c3c', '#2ecc71']
+def visualize_results(results_dict, path, name):
+    models = list(results_dict.keys())
+    metrics = list(results_dict[models[0]].keys())
 
-    plt.grid(True, alpha=0.3)
+    # Create subplots: 1 row, N columns
+    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+    axes[0].set_ylabel(name)
+    colors = ['#3498db', '#e74c3c', '#50C878']
 
-    evaluate_models = list(metrics.keys())
-    evaluate_values = list(metrics.values())
+    for i, metric in enumerate(metrics):
+        axes[i].grid(True, alpha=0.3)
+        axes[i].set_axisbelow(True)
 
-    for i in range(len(metrics)):
-        plt.bar(evaluate_models[i], evaluate_values[i], color=colors[i % len(colors)])
+        # Extract values for this specific metric across all models
+        values = [results_dict[m][metric] for m in models]
 
-    plt.ylim(0, max(evaluate_values) * 1.2)  # Add some headspace
+        # Convert tensors to floats if they are still torch tensors
+        values = [v.item() if hasattr(v, 'item') else v for v in values]
 
-    # Add value labels on top of bars
-    for j, v in enumerate(evaluate_values):
-        plt.text(j, v + (max(evaluate_values) * 0.02), f'{v:.3f}', ha='center')
+        axes[i].bar(models, values, color=colors, label=models if i == 0 else None)
+        if name == "CIFAR-100":
+            axes[i].set_title(f'{metric}', y = -0.13)
+        axes[i].set_ylim(0, max(values) * 1.2)  # Add some headspace
 
-    # plt.savefig(path, bbox_inches='tight', dpi=600)
-    plt.show()
+        # Add value labels on top of bars
+        for j, v in enumerate(values):
+            axes[i].text(j, v + (max(values) * 0.02), f'{v:.3f}', ha='center')
 
-def reliability_diagram(y_prob, y_true, path, n_bins=15):
+    fig.legend(loc="upper center", ncols=2, bbox_to_anchor=(0.5, 0.98))
+    plt.savefig(path, bbox_inches='tight', dpi=600)
+    # plt.show()
 
-    # Top-1 confidence + correctness
-    y_pred = np.argmax(y_prob, axis=1)
-    y_conf = np.max(y_prob, axis=1)
-    correct = (y_pred == y_true).astype(float)
+def reliability_diagram(y_true, y_prob_list, model_names, path, n_bins=15):
+    assert len(y_prob_list) == len(model_names)
 
-    # Fixed bins
     bins = np.linspace(0.0, 1.0, n_bins + 1)
-    bin_ids = np.digitize(y_conf, bins) - 1
-    bin_ids = np.clip(bin_ids, 0, n_bins - 1)
-
-    acc = np.zeros(n_bins)
-    conf = np.zeros(n_bins)
-    count = np.zeros(n_bins)
-
-    for b in range(n_bins):
-        mask = bin_ids == b
-        if np.any(mask):
-            acc[b] = correct[mask].mean()
-            conf[b] = y_conf[mask].mean()
-            count[b] = mask.sum()
-
-    # ECE (classic definition)
-    ece = np.sum((count / len(y_true)) * np.abs(acc - conf))
-
-    fig, ax = plt.subplots(figsize=(6, 6))
-
     width = 1.0 / n_bins
     x = bins[:-1]
 
-    # Base accuracy bars (gray)
-    ax.bar(
-        x,
-        acc,
-        width=width,
-        align="edge",
-        color="#cfd6cc",
-        edgecolor="black",
-        label="Accuracy",
+    def compute_stats(y_prob):
+        y_pred = np.argmax(y_prob, axis=1)
+        y_conf = np.max(y_prob, axis=1)
+        correct = (y_pred == y_true).astype(float)
+
+        acc = np.zeros(n_bins)
+        conf = np.zeros(n_bins)
+        count = np.zeros(n_bins)
+
+        ids = np.digitize(y_conf, bins) - 1
+        ids = np.clip(ids, 0, n_bins - 1)
+
+        for b in range(n_bins):
+            m = ids == b
+            if np.any(m):
+                acc[b] = correct[m].mean()
+                conf[b] = y_conf[m].mean()
+                count[b] = m.sum()
+
+        ece = np.sum((count / len(y_true)) * np.abs(acc - conf))
+        return acc, conf, ece
+
+    fig, axes = plt.subplots(
+        1, len(y_prob_list),
+        figsize=(6 * len(y_prob_list), 6),
+        sharey=True,
     )
 
-    # Over-confidence: confidence > accuracy
-    over = np.maximum(conf - acc, 0)
-    ax.bar(
-        x,
-        over,
-        bottom=acc,
-        width=width,
-        align="edge",
-        color="none",
-        edgecolor="#4C9AFF",
-        hatch="\\\\",
-        label="Over Confident",
-    )
+    if len(y_prob_list) == 1:
+        axes = [axes]
 
-    # Under-confidence: accuracy > confidence
-    under = np.maximum(acc - conf, 0)
-    ax.bar(
-        x,
-        under,
-        bottom=conf,
-        width=width,
-        align="edge",
-        color="#cfd6cc",
-        alpha=0.7,
-        edgecolor="#4C9AFF",
-        hatch="//",
-        label="Under Confident",
-    )
+    for i, (ax, y_prob, name) in enumerate(zip(axes, y_prob_list, model_names)):
+        acc, conf, ece = compute_stats(y_prob)
 
-    # Perfect calibration line
-    ax.plot([0, 1], [0, 1], "k--", linewidth=2, label="Perfect Calibration")
+        # Base accuracy
+        ax.bar(
+            x,
+            acc,
+            width=width,
+            align="edge",
+            color="#cfd6cc",
+            edgecolor="black",
+            label="Accuracy" if i == 0 else None
+        )
 
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1.0)
-    ax.set_xlabel("Confidence")
-    ax.set_ylabel("Accuracy")
-    ax.set_title(f"ECE = {ece:.3f}")
-    ax.legend(frameon=True)
-    # plt.savefig(path, bbox_inches='tight', dpi=600)
-    plt.show()
+        # Over-confidence
+        ax.bar(
+            x,
+            np.maximum(conf - acc, 0),
+            bottom=acc,
+            width=width,
+            align="edge",
+            edgecolor="#4C9AFF",
+            hatch="\\\\",
+            fill=False,
+            label="Over Confident" if i == 0 else None
+        )
+
+        # Under-confidence
+        ax.bar(
+            x,
+            np.maximum(acc - conf, 0),
+            bottom=conf,
+            width=width,
+            align="edge",
+            color="#cfd6cc",
+            alpha=0.7,
+            edgecolor="#4C9AFF",
+            hatch="//",
+            label="Under Confident" if i == 0 else None
+        )
+
+        # Perfect calibration
+        ax.plot([0, 1], [0, 1], "k--", linewidth=2, label="Perfect Calibration" if i == 0 else None)
+
+        ax.set_title(f"{name} - ECE = {ece:.3f}")
+        ax.set_xlabel(f"Confident", fontsize=12)
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+
+    axes[0].set_ylabel("Accuracy")
+    fig.legend(bbox_to_anchor=(0.6, 0.87), loc="upper center")
+    plt.savefig(path, bbox_inches='tight', dpi=600)
+    # plt.show()

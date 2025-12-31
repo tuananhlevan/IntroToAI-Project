@@ -1,6 +1,5 @@
 import torch
 import torch.nn.functional as F
-from sklearn.metrics import roc_auc_score
 from torchmetrics import MetricCollection
 from torchmetrics.classification import MulticlassCalibrationError, MulticlassAccuracy
 from tqdm import tqdm

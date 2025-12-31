@@ -5,11 +5,11 @@ from tqdm import tqdm
 from src.Logger.Logger import Logger
 
 def train(model, device, path_to_model, log_path, train_loader, val_loader, sample_times=20):
-    optimizer = optim.Adam(model.parameters(), lr=0.0001)
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=100)
     criterion = nn.CrossEntropyLoss()
-    epochs = 10
-    warmup_epochs = 5
-    best_acc = 0
+    epochs = 100
+    warmup_epochs = 40
 
     logger = Logger(log_path)
 
@@ -22,7 +22,6 @@ def train(model, device, path_to_model, log_path, train_loader, val_loader, samp
 
         # --- TRAIN ---
         model.train()
-        model.features.eval()
         running_loss = 0.
 
         train_loop = tqdm(train_loader,
@@ -47,13 +46,12 @@ def train(model, device, path_to_model, log_path, train_loader, val_loader, samp
             optimizer.step()
             running_loss += loss.item()
 
+        scheduler.step()
+
         print(f"[Epoch {epoch + 1}] Training loss: {running_loss / len(train_loader):.3f}")
 
         # --- VALIDATE ---
         model.eval()
-        for m in model.modules():
-            if m.__class__.__name__.startswith('Dropout'):
-                m.train()
         correct = 0
         total = 0
 
@@ -74,14 +72,13 @@ def train(model, device, path_to_model, log_path, train_loader, val_loader, samp
                 correct += (predicted == labels).sum().item()
 
         acc = 100 * correct / total
-        if acc > best_acc:
-            best_acc = acc
-            torch.save(model.state_dict(), path_to_model)
-            print(f"Saved best model at accuracy: {acc}")
         logger.log(epoch=epoch + 1, loss=running_loss / len(val_loader), acc=acc)
 
-        print(f"[Epoch {epoch + 1}] Validation Accuracy: {100 * correct / total:.3f} %")
+        print(f"[Epoch {epoch + 1}] Validation Accuracy: {acc:.3f} %")
         print("-" * 30)
 
     print("Finished Training")
     logger.close()
+
+    torch.save(model._orig_mod.state_dict(), path_to_model)
+    print(f"Saved model at: {path_to_model}")

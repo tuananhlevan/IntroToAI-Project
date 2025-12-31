@@ -1,9 +1,10 @@
 import torch
 from torch import nn
 from torch.nn import functional as F
+import torch.nn.utils as utils
 
 
-class MCDropout(nn.Module):
+class CNN(nn.Module):
     def __init__(self, num_classes=10):
         super().__init__()
 
@@ -19,7 +20,6 @@ class MCDropout(nn.Module):
         self.flat_size = 64 * 4 * 4
 
         self.fc1 = nn.Linear(self.flat_size, 256)
-        self.dropout = nn.Dropout(p=0.5)
         self.fc2 = nn.Linear(256, num_classes)
 
     def forward(self, x):
@@ -29,6 +29,6 @@ class MCDropout(nn.Module):
 
         x = torch.flatten(x, 1)
 
-        x = self.dropout(F.relu(self.fc1(x)))
+        x = F.relu(self.fc1(x))
         x = self.fc2(x)
         return x

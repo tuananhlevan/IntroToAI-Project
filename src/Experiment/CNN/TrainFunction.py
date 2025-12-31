@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 from src.Logger.Logger import Logger
 
-def train(model, device, path_to_model, log_path, train_loader, val_loader, sample_times=20):
+def train(model, device, path_to_model, log_path, train_loader, val_loader):
     optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=5e-4, nesterov=True)
     scheduler = OneCycleLR(
         optimizer,
@@ -39,10 +39,8 @@ def train(model, device, path_to_model, log_path, train_loader, val_loader, samp
 
             optimizer.zero_grad()
 
-            pred = 0
-            for _ in range(sample_times):
-                pred += model(inputs)
-            loss = criterion(pred / sample_times, labels)
+            pred = model(inputs)
+            loss = criterion(pred, labels)
 
             loss.backward()
             optimizer.step()
@@ -69,9 +67,7 @@ def train(model, device, path_to_model, log_path, train_loader, val_loader, samp
                 images, labels = data
                 images, labels = images.to(device), labels.to(device)
 
-                outputs = 0
-                for _ in range(sample_times):
-                    outputs += model(images)
+                outputs = model(images)
 
                 _, predicted = torch.max(outputs.data, 1)
                 total += labels.size(0)
