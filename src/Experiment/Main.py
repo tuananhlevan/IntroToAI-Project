@@ -6,6 +6,8 @@ from src.Experiment.Bayes.Model import BayesNet
 from src.Experiment.MCDropout.Model import MCDropout
 from src.Experiment.GetDataLoader import test_loader
 
+torch.manual_seed(41)
+
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 N_BINS = 15
 NUM_SAMPLES = 50
