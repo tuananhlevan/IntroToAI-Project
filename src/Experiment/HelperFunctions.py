@@ -66,8 +66,7 @@ def visualize_results(results_dict, path, name):
         values = [v.item() if hasattr(v, 'item') else v for v in values]
 
         axes[i].bar(models, values, color=colors, label=models if i == 0 else None)
-        if name == "CIFAR-100":
-            axes[i].set_title(f'{metric}', y = -0.13)
+        axes[i].set_title(f'{metric}', y = -0.13)
         axes[i].set_ylim(0, max(values) * 1.2)  # Add some headspace
 
         # Add value labels on top of bars
