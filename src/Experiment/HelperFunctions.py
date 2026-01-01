@@ -166,6 +166,6 @@ def reliability_diagram(y_true, y_prob_list, model_names, path, n_bins=15):
         ax.set_ylim(0, 1)
 
     axes[0].set_ylabel("Accuracy")
-    fig.legend(bbox_to_anchor=(0.6, 0.87), loc="upper center")
+    fig.legend(bbox_to_anchor=(0.45, 0.87), loc="upper center")
     plt.savefig(path, bbox_inches='tight', dpi=600)
     # plt.show()

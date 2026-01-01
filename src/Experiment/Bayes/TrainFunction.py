@@ -6,15 +6,15 @@ from src.Logger.Logger import Logger
 
 def train(model, device, path_to_model, log_path, train_loader, val_loader, sample_times=20):
     optimizer = optim.Adam(model.parameters(), lr=0.001)
-    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=100)
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=15)
     criterion = nn.CrossEntropyLoss()
-    epochs = 100
-    warmup_epochs = 40
+    epochs = 15
 
     logger = Logger(log_path)
 
     print("Starting Training...")
     for epoch in range(epochs):
+        warmup_epochs = 5
         if epoch < warmup_epochs:
             kl_weight = (epoch / warmup_epochs)
         else:

@@ -11,14 +11,14 @@ def train(model, device, path_to_model, log_path, train_loader, val_loader, samp
         optimizer,
         max_lr=0.1,  # Peak Learning Rate
         steps_per_epoch=len(train_loader),
-        epochs=100,
+        epochs=15,
         pct_start=0.3,  # Spend 30% of time raising LR, 70% lowering it
         anneal_strategy='cos',  # Cosine annealing
         div_factor=25.0,  # Initial LR = max_lr / 25
         final_div_factor=10000.0  # Final LR = Initial LR / 10000 (Almost zero)
     )
     criterion = nn.CrossEntropyLoss()
-    epochs = 100
+    epochs = 15
 
     logger = Logger(log_path)
 

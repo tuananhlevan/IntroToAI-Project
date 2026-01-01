@@ -40,7 +40,7 @@ def train(model, device, path_to_model, log_path, train_loader, val_loader, samp
                 labels=labels,
                 criterion=criterion,
                 sample_nbr=sample_times,
-                complexity_cost_weight=kl_weight/len(train_loader)
+                complexity_cost_weight=kl_weight / len(train_loader)
                 )
             
             loss.backward()

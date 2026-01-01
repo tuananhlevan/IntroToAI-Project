@@ -5,7 +5,6 @@ from torch import nn
 from torch.nn import functional as F
 from torch.nn.modules import Conv2d, Linear, MaxPool2d
 
-
 @variational_estimator
 class BayesNet(nn.Module):
     def __init__(self, num_classes=10):
