@@ -194,6 +194,22 @@
 	
 	These results highlight a clear distinction in model behavior: while the deterministic CNN maximizes accuracy on simple data, it fails to capture its own ignorance. The Bayesian Hybrid and MC Dropout methods successfully mitigate this overconfidence, providing accurate uncertainty estimates with only minor (or no) trade-offs in classification accuracy.
 	
+	\subsection{Results on the Brain Tumor Dataset}
+	Following the benchmark on CIFAR, we applied the same methodologies to the domain-specific task of Brain Tumor classification. This experiment aimed to verify if the calibration benefits observed in general benchmarks translate to a high-stakes medical imaging context.
+	
+	\includegraphics[width=\textwidth]{images/metrics_experiment.png}
+	
+	All three models demonstrated high competence in this domain, achieving accuracies exceeding 93\%.
+	
+	The calibration results for the Brain Tumor dataset present a more nuanced picture than the CIFAR benchmarks, particularly regarding the trade-off between average and maximum calibration errors.
+	
+	\begin{itemize}
+		\item The Bayesian Hybrid emerged as the most reliable model on average, achieving a remarkably low ECE of 0.012. In comparison, both the CNN (0.028) and MCDropout (0.027) exhibited nearly double the expected error. This indicates that for the majority of predictions, the Bayesian model's confidence scores are the most trustworthy
+		\item A notable improvement was observed in the probabilistic models regarding worst-case errors. The baseline CNN suffered the highest Maximum Calibration Error of 0.469, indicating potential instability in specific confidence zones. Conversely, MCDropout achieved the lowest MCE of 0.399, followed closely by the Bayesian Hybrid at 0.404. This reverses the trend seen in simpler datasets, showing that in this complex medical task, probabilistic methods effectively mitigate extreme miscalibration
+	\end{itemize}
+	
+	\includegraphics[width=\textwidth]{images/reliability_experiment.png}
+	
 	\section{Conclusion}
 	
 	

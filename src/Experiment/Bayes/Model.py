@@ -19,13 +19,9 @@ class BayesNet(nn.Module):
         self.conv2 = Conv2d(16, 32, kernel_size=(3, 3), padding=1)  # 32x16x16
         self.pool2 = MaxPool2d(kernel_size=(2, 2), stride=2)  # 32x8x8
 
-        # Block 3
-        self.conv3 = Conv2d(32, 64, kernel_size=(3, 3), padding=1)  # 64x8x8
-        self.pool3 = MaxPool2d(kernel_size=(2, 2), stride=2)  # 64x4x4
-
         # --- This is the new flattened size ---
-        # 64 channels * 4 * 4 features
-        self.flat_size = 64 * 4 * 4
+        # 32 channels * 8 * 8 features
+        self.flat_size = 32 * 8 * 8
 
         self.fc = Linear(self.flat_size, 256)
         self.bfc = BayesianLinear(
@@ -42,7 +38,6 @@ class BayesNet(nn.Module):
         # We add F.relu after each conv/linear layer
         x = self.pool1(F.relu(self.conv1(x)))
         x = self.pool2(F.relu(self.conv2(x)))
-        x = self.pool3(F.relu(self.conv3(x)))
 
         x = torch.flatten(x, 1)  # Flatten all dimensions except batch
 
