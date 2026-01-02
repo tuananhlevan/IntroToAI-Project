@@ -12,4 +12,11 @@ Then install requirements by
 pip install -r requirements.txt
 `
 
-Finally run the `main.py` to see the result
+To see the results, run:
+`
+python -m src.Evaluation.Main
+`
+or
+`
+python -m src.Experiment.Main
+`
