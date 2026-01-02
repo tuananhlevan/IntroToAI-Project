@@ -16,7 +16,7 @@ class MCDropout(nn.Module):
         self.flat_size = 32 * 8 * 8
 
         self.fc1 = nn.Linear(self.flat_size, 256)
-        self.dropout = nn.Dropout(p=0.5)
+        self.dropout = nn.Dropout(p=0.25)
         self.fc2 = nn.Linear(256, num_classes)
 
     def forward(self, x):

@@ -1,5 +1,16 @@
 {
     "version": "0.2.0",
     "configurations": [
+        {
+            "name": "Python: Current File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",  // Ensures run location is root
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}" // Adds root to path
+            }
+        }
     ]
 }
