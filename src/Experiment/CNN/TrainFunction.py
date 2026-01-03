@@ -6,19 +6,9 @@ from tqdm import tqdm
 from src.Logger.Logger import Logger
 
 def train(model, device, path_to_model, log_path, train_loader, val_loader):
-    optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=5e-4, nesterov=True)
-    scheduler = OneCycleLR(
-        optimizer,
-        max_lr=0.1,  # Peak Learning Rate
-        steps_per_epoch=len(train_loader),
-        epochs=20,
-        pct_start=0.3,  # Spend 30% of time raising LR, 70% lowering it
-        anneal_strategy='cos',  # Cosine annealing
-        div_factor=25.0,  # Initial LR = max_lr / 25
-        final_div_factor=10000.0  # Final LR = Initial LR / 10000 (Almost zero)
-    )
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
     criterion = nn.CrossEntropyLoss()
-    epochs = 20
+    epochs = 50
 
     logger = Logger(log_path)
 
@@ -44,7 +34,6 @@ def train(model, device, path_to_model, log_path, train_loader, val_loader):
 
             loss.backward()
             optimizer.step()
-            scheduler.step()
 
             running_loss += loss.item()
 

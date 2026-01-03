@@ -16,8 +16,8 @@ class CNN(nn.Module):
 
         self.flat_size = 32 * 8 * 8
 
-        self.fc1 = nn.Linear(self.flat_size, 256)
-        self.fc2 = nn.Linear(256, num_classes)
+        self.fc1 = nn.Linear(self.flat_size, 512)
+        self.fc2 = nn.Linear(512, num_classes)
 
     def forward(self, x):
         x = self.pool1(F.relu(self.conv1(x)))

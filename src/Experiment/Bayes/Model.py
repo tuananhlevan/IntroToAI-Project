@@ -23,9 +23,9 @@ class BayesNet(nn.Module):
         # 32 channels * 8 * 8 features
         self.flat_size = 32 * 8 * 8
 
-        self.fc = Linear(self.flat_size, 256)
+        self.fc = Linear(self.flat_size, 512)
         self.bfc = BayesianLinear(
-            in_features=256,
+            in_features=512,
             out_features=num_classes,
             prior_sigma_1=1.0,
             prior_sigma_2=0.002,
