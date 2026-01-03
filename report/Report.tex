@@ -68,7 +68,7 @@
 	For both datasets, standard train-test splits provided by the dataset are used.
 	
 	\subsection{Brain Tumor Image Classification Dataset}
-	To evaluate uncertainty estimation in a real-world, safety-critical setting, our project uses the Brain Tumor Classification dataset obtained from \href{https://www.kaggle.com/datasets/rishiksaisanthosh/brain-tumour-classification/data}{Kaggle}.
+	To evaluate uncertainty estimation in a real-world, safety-critical setting, our project uses the Brain Tumor Classification dataset obtained from \href{https://www.kaggle.com/datasets/rishiksaisanthosh/brain-tumour-classification/data}{[Kaggle]}.
 	
 	The dataset consists of MRI brain images categorized into multiple tumor-related classes (glioma, meningioma, pituitary tumor, and no tumor). Compared to CIFAR datasets, these images exhibit:
 	
@@ -190,7 +190,7 @@
 	
 	The deterministic CNN consistently produced the highest calibration errors. On CIFAR-100, it exhibited a massive ECE of 0.459 and an MCE of 0.643, indicating extreme misalignment between confidence and correctness. In strong contrast, both probabilistic methods drastically improved reliability. The Bayesian Hybrid proved the most robust, achieving the lowest ECE on CIFAR-100 (0.017) and a low MCE on CIFAR-10 (0.073), effectively reducing the expected error by over 90\% compared to the baseline.
 	
-	This disparity is visually evident in the reliability diagrams. The CNN’s confidence bars consistently below the diagonal "Perfect Calibration" line, confirming that the model is often "overconfident". Conversely, both the Bayesian Hybrid and MC Dropout models produce bars that closely adhere to the diagonal.
+	This disparity is visually evident in the reliability diagrams. The CNN's confidence bars consistently below the diagonal "Perfect Calibration" line, confirming that the model is often "overconfident". Conversely, both the Bayesian Hybrid and MC Dropout models produce bars that closely adhere to the diagonal.
 	
 	These results highlight a clear distinction in model behavior: while the deterministic CNN maximizes accuracy on simple data, it fails to capture its own ignorance. The Bayesian Hybrid and MC Dropout methods successfully mitigate this overconfidence, providing accurate uncertainty estimates with only minor (or no) trade-offs in classification accuracy.
 	
@@ -247,8 +247,8 @@
 		\item \textbf{Bayesian Variational Inference:} Blundell, C., Cornebise, J., Kavukcuoglu, K., \& Wierstra, D. (2015). \href{https://arxiv.org/abs/1505.05424}{Weight Uncertainty in Neural Networks}. Proceedings of the 32nd International Conference on Machine Learning (ICML).
 		\item \textbf{Calibration and ECE:} Guo, C., Pleiss, G., Sun, Y., \& Weinberger, K. Q. (2017). \href{https://arxiv.org/abs/1706.04599}{On Calibration of Modern Neural Networks}. Proceedings of the 34th International Conference on Machine Learning (ICML).
 		\item \textbf{CIFAR-10 and CIFAR-100:} Krizhevsky, A. (2009). \href{https://www.cs.toronto.edu/~kriz/learning-features-2009-TR.pdf}{Learning Multiple Layers of Features from Tiny Images}. Technical Report, University of Toronto.
-		\item \textbf{Brain Tumor MRI Dataset:} Available at: \href{https://www.kaggle.com/datasets/rishiksaisanthosh/brain-tumour-classification/data}{Kaggle}.
+		\item \textbf{Brain Tumor MRI Dataset:} Available at: \href{https://www.kaggle.com/datasets/rishiksaisanthosh/brain-tumour-classification/data}{[Kaggle]}.
 		\item \textbf{Pytorch:} Paszke, A., Gross, S., Massa, F., Lerer, A., et al. (2019). \href{https://arxiv.org/abs/1912.01703}{PyTorch: An Imperative Style, High-Performance Deep Learning Library}. Advances in Neural Information Processing Systems (NeurIPS).
-		\item \textbf{Blitz-Bayesian-Pytorch:} Available at: \href{https://github.com/piEsposito/blitz-bayesian-deep-learning}{Github}
+		\item \textbf{Blitz-Bayesian-Pytorch:} Available at: \href{https://github.com/piEsposito/blitz-bayesian-deep-learning}{[Github]}
 	\end{enumerate}
 \end{document}
