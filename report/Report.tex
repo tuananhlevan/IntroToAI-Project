@@ -28,7 +28,7 @@
 	\And
 	Nguyen Tran Minh Tri\samethanks \\
 	\texttt{tri.ntm2400116@sis.hust.edu.vn} \\
-	\AND
+	\And
 	Le Xuan Nhat Khoi\samethanks \\
 	\texttt{khoi.lxn2416711@sis.hust.edu.vn} \\
 	\And
@@ -198,19 +198,57 @@
 	Following the benchmark on CIFAR, we applied the same methodologies to the domain-specific task of Brain Tumor classification. This experiment aimed to verify if the calibration benefits observed in general benchmarks translate to a high-stakes medical imaging context.
 	
 	\includegraphics[width=\textwidth]{images/metrics_experiment.png}
-	
-	All three models demonstrated high competence in this domain, achieving accuracies exceeding 93\%.
-	
-	The calibration results for the Brain Tumor dataset present a more nuanced picture than the CIFAR benchmarks, particularly regarding the trade-off between average and maximum calibration errors.
+
+	Contrary to the CIFAR experiments where the deterministic baseline often led in accuracy, the Bayesian Hybrid demonstrated superior predictive performance on this medical dataset.
 	
 	\begin{itemize}
-		\item The Bayesian Hybrid emerged as the most reliable model on average, achieving a remarkably low ECE of 0.012. In comparison, both the CNN (0.028) and MCDropout (0.027) exhibited nearly double the expected error. This indicates that for the majority of predictions, the Bayesian model's confidence scores are the most trustworthy
-		\item A notable improvement was observed in the probabilistic models regarding worst-case errors. The baseline CNN suffered the highest Maximum Calibration Error of 0.469, indicating potential instability in specific confidence zones. Conversely, MCDropout achieved the lowest MCE of 0.399, followed closely by the Bayesian Hybrid at 0.404. This reverses the trend seen in simpler datasets, showing that in this complex medical task, probabilistic methods effectively mitigate extreme miscalibration
+		\item The Bayesian Hybrid achieved the highest accuracy of 0.956, outperforming both the baseline and the dropout ensemble. This suggests that the variational inference layers successfully captured complex features in the MRI scans that the standard models missed.
+		\item The MC Dropout model (0.937) and the baseline CNN (0.935) performed comparably to each other but lagged slightly behind the Bayesian approach.
 	\end{itemize}
-	
+
+	The calibration metrics present a compelling trade-off between average reliability and worst-case stability
+
 	\includegraphics[width=\textwidth]{images/reliability_experiment.png}
 	
+	\begin{itemize}
+		\item In terms of general trustworthiness, the probabilistic models clearly outperformed the baseline. The Bayesian Hybrid achieved the lowest expected error of 0.019, followed closely by MCDropout at 0.020. The deterministic CNN was significantly less calibrated, with an ECE of 0.041, indicating that its confidence scores are generally less representative of true correctness.
+		\item A notable anomaly appeared in the maximum error metrics. Despite having the worst average calibration, the CNN achieved the lowest MCE (0.163). In contrast, the Bayesian Hybrid, despite its excellent average performance, suffered the highest MCE of 0.451. This suggests that while the Bayesian model is highly reliable overall, it contains specific "blind spots" (particular confidence bins) where its probability estimates deviate drastically from reality.
+	\end{itemize}
+	
 	\section{Conclusion}
-	
-	
+	The experiments conducted in this study highlight the critical role of uncertainty quantification in deployment scenarios, particularly in medical imaging where trust is as important as accuracy.
+
+	\subsection{The Accuracy-Calibration Trade-off}
+	A common hypothesis in Bayesian Deep Learning is that introducing probabilistic layers often incurs a penalty in raw predictive accuracy in exchange for better calibration. Our results on CIFAR-10 supported this, where the deterministic CNN reigned supreme. However, the Brain Tumor experiment challenged this assumption. The Bayesian Hybrid model achieved the highest accuracy (0.956), outperforming the deterministic baseline (0.935). This suggests that for complex, domain-specific tasks with potentially limited data (compared to CIFAR), the regularization effects of Variational Inference can actually enhance feature learning rather than hinder it.
+
+	\subsection{Reliability in Medical Contexts (ECE vs. MCE)}
+	\begin{itemize}
+		\item Both MC Dropout and Bayesian VI successfully mitigated the "overconfidence" problem inherent in standard CNNs. The Bayesian Hybrid reduced the Expected Calibration Error to 0.019 (vs. 0.041 for CNN), meaning that on average, a clinician can trust the probability scores provided by the model.
+		\item However, there was a discrepancy in the calibration metrics. While the Bayesian Hybrid had the best average calibration score (ECE of 0.019), it showed a high Maximum Calibration Error (0.451). Looking at the reliability diagrams, this was caused by a specific spike in overconfidence in the 0.4-0.5 probability range.
+	\end{itemize}
+
+	\subsection{Limitations}
+	\begin{itemize}
+		\item \textbf{Computational Cost:} Both MC Dropout and Bayesian VI require multiple forward passes during inference to estimate uncertainty. This increases latency, which could be a bottleneck for real-time diagnostic tools, though less critical for offline analysis.
+		\item \textbf{Instability:}The high MCE observed in the Bayesian Hybrid indicates that while Variational Inference provides excellent global calibration, it is sensitive to hyperparameter choices (such as the prior distribution) and may behave erratically in specific confidence regions. 
+	\end{itemize}
+
+	\subsection{Future Improvements}
+	To address the stability issues observed in the Brain Tumor results, future works could explore:
+	\begin{enumerate}
+		\item \textbf{Temperature Scaling:} Applying post-hoc calibration (Temperature Scaling) to the Bayesian output could smooth out the specific under-confidence spike observed in the reliability diagrams.
+		\item \textbf{Hybrid Ensembles:} Combining the stability of the CNN (low MCE) with the sensitivity of the Bayesian model (low ECE) via a weighted ensemble could offer a "best of both worlds" solution.
+		\item \textbf{Epistemic vs. Aleatoric Uncertainty:} Further decomposing the uncertainty into epistemic (model knowledge) and aleatoric (data noise) components could help explain why the Bayesian model struggled specifically in the 0.4-0.5 confidence bin.
+	\end{enumerate}
+
+	\section{Reference}
+	\begin{enumerate}
+		\item \textbf{Monte Carlo Dropout:} Gal, Y., \& Ghahramani, Z. (2016). \href{https://arxiv.org/abs/1506.02142}{Dropout as a Bayesian Approximation: Representing Model Uncertainty in Deep Learning}. Proceedings of the 33rd International Conference on Machine Learning (ICML).
+		\item \textbf{Bayesian Variational Inference:} Blundell, C., Cornebise, J., Kavukcuoglu, K., \& Wierstra, D. (2015). \href{https://arxiv.org/abs/1505.05424}{Weight Uncertainty in Neural Networks}. Proceedings of the 32nd International Conference on Machine Learning (ICML).
+		\item \textbf{Calibration and ECE:} Guo, C., Pleiss, G., Sun, Y., \& Weinberger, K. Q. (2017). \href{https://arxiv.org/abs/1706.04599}{On Calibration of Modern Neural Networks}. Proceedings of the 34th International Conference on Machine Learning (ICML).
+		\item \textbf{CIFAR-10 and CIFAR-100:} Krizhevsky, A. (2009). \href{https://www.cs.toronto.edu/~kriz/learning-features-2009-TR.pdf}{Learning Multiple Layers of Features from Tiny Images}. Technical Report, University of Toronto.
+		\item \textbf{Brain Tumor MRI Dataset:} Available at: \href{https://www.kaggle.com/datasets/rishiksaisanthosh/brain-tumour-classification/data}{Kaggle}.
+		\item \textbf{Pytorch:} Paszke, A., Gross, S., Massa, F., Lerer, A., et al. (2019). \href{https://arxiv.org/abs/1912.01703}{PyTorch: An Imperative Style, High-Performance Deep Learning Library}. Advances in Neural Information Processing Systems (NeurIPS).
+		\item \textbf{Blitz-Bayesian-Pytorch:} Available at: \href{https://github.com/piEsposito/blitz-bayesian-deep-learning}{Github}
+	\end{enumerate}
 \end{document}
